@@ -9,8 +9,6 @@ LABEL maintainer="Nadir Hamid <matrix.nad@gmail.com>"
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-COPY id_rsa ~/.ssh/
-COPY id_rsa.pub ~/.ssh/
 # Copy go mod and sum files
 COPY go.mod go.sum ./
 
