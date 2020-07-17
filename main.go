@@ -346,7 +346,7 @@ func runMonthlyBilling() {
 		defer stmt.Close()
 		res, err := stmt.Exec(cents, callTolls, recordingCosts, faxCosts, membershipCosts, monthlyNumberRentals, "INCOMPLETE", workspace.CreatorId, workspace.Id, currentTime)
 		if err != nil {
-			fmt.Printf("error creating debit..\r\n")
+			fmt.Printf("error creating invoice..\r\n")
 			fmt.Println(err)
 			continue
 		}
@@ -369,12 +369,12 @@ func runMonthlyBilling() {
 			}
 			if ( charge == totalCosts ) { //user has enough credits
 				fmt.Printf("User has enough credits. Charging balance\r\n")
-				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS' WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
 					fmt.Printf("could not prepare query..\r\n")
 					 continue
 				}
-				_, err = stmt.Exec(invoiceId)
+				_, err = stmt.Exec(totalCosts, invoiceId)
 				if err != nil {
 					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
@@ -383,12 +383,12 @@ func runMonthlyBilling() {
 			} else {
 				fmt.Printf("User does not have enough credits. Charging balance as much as possible\r\n")
 				// update debit to reflect exactly how much we can charge
-				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'incomplete', source ='CREDITS', cents = ? WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
 					fmt.Printf("could not prepare query..\r\n")
 					continue
 				}
-				_, err = stmt.Exec(billingInfo.RemainingBalanceCents, invoiceId)
+				_, err = stmt.Exec(charge, invoiceId)
 				if err != nil {
 					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
@@ -404,12 +404,12 @@ func runMonthlyBilling() {
 					fmt.Println(err)
 					continue
 				}
-				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS' WHERE id = ?")
+				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
 					fmt.Printf("could not prepare query..\r\n")
 					continue
 				}
-				_, err = stmt.Exec(invoiceId)
+				_, err = stmt.Exec(totalCosts, invoiceId)
 				if err != nil {
 					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
@@ -429,12 +429,12 @@ func runMonthlyBilling() {
 					fmt.Println(err)
 					continue
 				}
-				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS', WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
 				if err != nil {
 					fmt.Printf("could not prepare query..\r\n")
 					continue
 				}
-				_, err = stmt.Exec(invoiceId)
+				_, err = stmt.Exec(totalCosts, invoiceId)
 				if err != nil {
 					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
