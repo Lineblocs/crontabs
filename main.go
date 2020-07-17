@@ -420,13 +420,25 @@ func runMonthlyBilling() {
             continue;
 
 		} else {
-// try to charge the rest using a card
+			// regular membership charge. only try to charge a card
 				fmt.Printf("Charging recurringly with card..\r\n")
 				cents := int(math.Ceil(totalCosts))
 				err = lineblocs.ChargeCustomer(user, workspace, cents, invoiceDesc)
 				if err != nil {
 					fmt.Printf("error charging user..\r\n")
 					fmt.Println(err)
+					stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', cents_collected = 0.0 WHERE id = ?")
+					if err != nil {
+						fmt.Printf("could not prepare query..\r\n")
+						continue
+					}
+					_, err = stmt.Exec(invoiceId)
+					if err != nil {
+						fmt.Printf("error updating invoice....\r\n")
+						fmt.Println(err)
+						continue
+					}
+
 					continue
 				}
 				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
