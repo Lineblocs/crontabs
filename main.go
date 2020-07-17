@@ -22,8 +22,8 @@ var db* sql.DB;
 
 type Email struct {
 	EmailType string `json:"email_type"`
-	UserId int `json:"user_id"`
-	WorkspaceId int `json:"workspace_id"`
+	User lineblocs.User `json:"user"`
+	Workspace lineblocs.Workspace `json:"workspace"`
 	Args map[string]string `json:"args"`
 }
 
@@ -39,7 +39,7 @@ func dispatchEmail(emailType string, user* lineblocs.User, workspace* lineblocs.
     url := "http://lineblocs-email/send"
     fmt.Println("URL:>", url)
 
-	email := Email{UserId: user.Id, WorkspaceId: workspace.Id, EmailType: emailType, Args: emailArgs};
+	email := Email{User: *user, Workspace: *workspace, EmailType: emailType, Args: emailArgs};
 	b, err := json.Marshal(email)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -337,20 +337,20 @@ func runMonthlyBilling() {
 		totalCosts)
 
 
-		fmt.Printf("Creating debit for user %d, on workspace %d, plan type %s\r\n", user.Id, workspace.Id, workspace.Plan)
-		stmt, err := db.Prepare("INSERT INTO users_debits (`cents`, `status`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?)")
+		fmt.Printf("Creating invoice for user %d, on workspace %d, plan type %s\r\n", user.Id, workspace.Id, workspace.Plan)
+		stmt, err := db.Prepare("INSERT INTO users_invoices (`cents`, `call_costs`, `recording_costs`, `fax_costs`, `membership_costs`, `number_costs` `status`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
 			fmt.Printf("could not prepare query..\r\n")
 			continue
 		}
 		defer stmt.Close()
-		res, err := stmt.Exec(cents, "INCOMPLETE", workspace.CreatorId, workspace.Id, currentTime)
+		res, err := stmt.Exec(cents, callTolls, recordingCosts, faxCosts, membershipCosts, monthlyNumberRentals, "INCOMPLETE", workspace.CreatorId, workspace.Id, currentTime)
 		if err != nil {
 			fmt.Printf("error creating debit..\r\n")
 			fmt.Println(err)
 			continue
 		}
-		debitId, err := res.LastInsertId()
+		invoiceId, err := res.LastInsertId()
 		if err != nil {
 			fmt.Printf("could not get insert id..\r\n")
 			fmt.Println(err)
@@ -369,12 +369,12 @@ func runMonthlyBilling() {
 			}
 			if ( charge == totalCosts ) { //user has enough credits
 				fmt.Printf("User has enough credits. Charging balance\r\n")
-				stmt, err := db.Prepare("UPDATE users_debits SET status = 'complete', source ='CREDITS' WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS' WHERE id = ?")
 				if err != nil {
 					fmt.Printf("could not prepare query..\r\n")
 					 continue
 				}
-				_, err = stmt.Exec(debitId)
+				_, err = stmt.Exec(invoiceId)
 				if err != nil {
 					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
@@ -383,12 +383,12 @@ func runMonthlyBilling() {
 			} else {
 				fmt.Printf("User does not have enough credits. Charging balance as much as possible\r\n")
 				// update debit to reflect exactly how much we can charge
-				stmt, err := db.Prepare("UPDATE users_debits SET status = 'complete', source ='CREDITS', cents = ? WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'incomplete', source ='CREDITS', cents = ? WHERE id = ?")
 				if err != nil {
 					fmt.Printf("could not prepare query..\r\n")
 					continue
 				}
-				_, err = stmt.Exec(billingInfo.RemainingBalanceCents, debitId)
+				_, err = stmt.Exec(billingInfo.RemainingBalanceCents, invoiceId)
 				if err != nil {
 					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
@@ -401,6 +401,17 @@ func runMonthlyBilling() {
 				err = lineblocs.ChargeCustomer(user, workspace, cents, invoiceDesc)
 				if err != nil {
 					fmt.Printf("error charging user..\r\n")
+					fmt.Println(err)
+					continue
+				}
+				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS' WHERE id = ?")
+				if err != nil {
+					fmt.Printf("could not prepare query..\r\n")
+					continue
+				}
+				_, err = stmt.Exec(invoiceId)
+				if err != nil {
+					fmt.Printf("error updating debit..\r\n")
 					fmt.Println(err)
 					continue
 				}
@@ -418,6 +429,18 @@ func runMonthlyBilling() {
 					fmt.Println(err)
 					continue
 				}
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS', WHERE id = ?")
+				if err != nil {
+					fmt.Printf("could not prepare query..\r\n")
+					continue
+				}
+				_, err = stmt.Exec(invoiceId)
+				if err != nil {
+					fmt.Printf("error updating debit..\r\n")
+					fmt.Println(err)
+					continue
+				}
+
 
 		}
 	}
