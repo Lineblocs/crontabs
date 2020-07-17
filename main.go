@@ -14,7 +14,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	lineblocs "bitbucket.org/infinitet3ch/lineblocs-go-helpers"
-	now "github.com/jinzhu/now"
+	//now "github.com/jinzhu/now"
 )
 
 var db* sql.DB;
@@ -133,8 +133,10 @@ func runFreeTrialEnding() {
 func runMonthlyBilling() {
 	var id int 
 	var creatorId int 
-	start := now.BeginningOfMonth()    // 2013-11-01 00:00:00 Fri
-	end := now.EndOfMonth()          // 2013-11-30 23:59:59.999999999 Sat
+
+	start := time.Now()
+	start = start.AddDate(0, -1, 0)
+	end := time.Now()
 	currentTime := time.Now()
 	startFormatted := start.Format("2006-01-02 15:04:05")
 	endFormatted := end.Format("2006-01-02 15:04:05")
@@ -203,7 +205,7 @@ func runMonthlyBilling() {
 			}
 
 			defer stmt.Close()
-			_, err = stmt.Exec("NUMBER_RENTAL", "INCOMPLETE", monthlyCosts, didId, user.Id, workspace.Id, currentTime)
+			_, err = stmt.Exec("NUMBER_RENTAL", "INCOMPLETE", monthlyCosts, didId, user.Id, workspace.Id, start)
 			if err != nil {
 				fmt.Printf("error creating number rental debit..\r\n")
 				continue
@@ -517,7 +519,7 @@ func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, ch
 func runRemoveOldLogs() {
 	now := time.Time{}
 	// 7 day retention
-	now.AddDate(0, 0, -7)
+	now = now.AddDate(0, 0, -7)
 	dateFormatted := now.Format("2006-01-02 15:04:05")
 	_, err := db.Exec("DELETE from debugger_logs where created_at >= ?", dateFormatted)
 	if err != nil {
@@ -528,9 +530,9 @@ func runRemoveOldLogs() {
 }
 func runSendBackgroundEmails() {
 	ago := time.Time{}
-	ago.AddDate(0, 0, -14)
+	ago = ago.AddDate(0, 0, -14)
 	reminded := time.Time{}
-	reminded.AddDate(0, 0, -28)
+	reminded = reminded.AddDate(0, 0, -28)
 	dateFormatted := ago.Format("2006-01-02 15:04:05")
 	results, err := db.Query("SELECT workspaces.id, workspaces.creator_id from workspaces inner join users on users.id = workspaces.creator_id where users.last_login >= ? AND users.last_login_reminded IS NULL", dateFormatted)
 	if err != nil {
