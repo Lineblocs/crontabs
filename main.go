@@ -127,7 +127,9 @@ func runFreeTrialEnding() {
 
 }
 
-// cron tab to email users to tell them that their free trial will be ending soon
+// crontab that runs on the last day of the month at 12:00AM.
+// here we collect a monthly charge based on the user's monthly
+// usage.
 func runMonthlyBilling() {
 	var id int 
 	var creatorId int 
@@ -164,9 +166,9 @@ func runMonthlyBilling() {
 		}
 
 	  	var plan *lineblocs.ServicePlan
-		for _, aPlan := range plans {
-			if aPlan.Name == workspace.Plan {
-				plan = &aPlan
+		for _, target := range plans {
+			if target.Name == workspace.Plan {
+				plan = &target
 				break
 			}
 		}
@@ -218,13 +220,35 @@ func runMonthlyBilling() {
 			continue
 		}
 
+		// get the amount of users in this workspace
+		rows, err := db.Query("SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?", workspace.Id);
+		if err != nil {
+			fmt.Printf("error getting workspace user count.\r\n")
+			fmt.Println(err)
+			continue
+		}
+		rows.Close()
+
+
+		userCount, err := checkCount(rows)
+		if err != nil {
+			fmt.Printf("error getting workspace user count.\r\n")
+			fmt.Println(err)
+			continue
+		}
+		fmt.Printf("Workspace total user count %d",userCount)
+
 		totalCosts := 0.0
-		membershipCosts := 0.0
+		membershipCosts := plan.BaseCosts * float64(userCount)
 		callTolls := 0.0
 		recordingCosts := 0.0
 		faxCosts := 0.0
 		monthlyNumberRentals :=  0.0
 		invoiceDesc := fmt.Sprintf("LineBlocs invoice for %s", billingInfo.InvoiceDue)
+
+
+		fmt.Printf("Workspace total membership costs is %f",membershipCosts)
+
 		results2, err := db.Query("SELECT id, source, module_id, cents, created_at FROM users_debits WHERE user_id = ? AND created_at BETWEEN ? AND ?", workspace.CreatorId, startFormatted, endFormatted);
 		if err != nil {
 			fmt.Printf("error running query..\r\n")
@@ -338,9 +362,10 @@ func runMonthlyBilling() {
 
 
 		fmt.Printf("Creating invoice for user %d, on workspace %d, plan type %s\r\n", user.Id, workspace.Id, workspace.Plan)
-		stmt, err := db.Prepare("INSERT INTO users_invoices (`cents`, `call_costs`, `recording_costs`, `fax_costs`, `membership_costs`, `number_costs` `status`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		stmt, err := db.Prepare("INSERT INTO users_invoices (`cents`, `call_costs`, `recording_costs`, `fax_costs`, `membership_costs`, `number_costs`, `status`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
 			fmt.Printf("could not prepare query..\r\n")
+			fmt.Println( err )
 			continue
 		}
 		defer stmt.Close()
@@ -648,6 +673,17 @@ func runSendBackgroundEmails() {
 	}
 
 
+}
+
+func checkCount(rows *sql.Rows) (int, error) {
+	var count int;
+ 	for rows.Next() {
+		err:= rows.Scan(&count)
+		if err != nil {
+			return 0, err
+		}
+    }   
+    return count, nil
 }
 func main() {
 	var err error
