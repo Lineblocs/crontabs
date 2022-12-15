@@ -13,7 +13,7 @@ import (
 	math "math"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
-	lineblocs "bitbucket.org/infinitet3ch/lineblocs-go-helpers"
+	lineblocs "github.com/Lineblocs/go-helpers"
 	//now "github.com/jinzhu/now"
 )
 

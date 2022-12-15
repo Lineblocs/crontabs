@@ -1,3 +1,3 @@
-export GOPRIVATE=bitbucket.org/infinitet3ch/lineblocs-go-helpers
-go get -u bitbucket.org/infinitet3ch/lineblocs-go-helpers
+export GOPRIVATE=github.com/Lineblocs/go-helpers
+go get -u github.com/Lineblocs/go-helpers
 go run main.go
