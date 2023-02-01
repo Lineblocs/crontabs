@@ -3,7 +3,7 @@ module lineblocs.com/crontabs
 go 1.17
 
 require (
-	github.com/Lineblocs/go-helpers v0.0.0-20221215231109-1cd12c0bfaa6
+	github.com/Lineblocs/go-helpers v0.0.3
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/mailgun/mailgun-go/v4 v4.8.1
 )

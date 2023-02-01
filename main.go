@@ -385,7 +385,8 @@ func runMonthlyBilling() {
 		}
 		fmt.Printf("Charging user %d, on workspace %d, plan type %s\r\n", user.Id, workspace.Id, workspace.Plan)
 		// try to charge the debit
-		if workspace.Plan == "pay-as-you-go" {
+		//if workspace.Plan == "pay-as-you-go" {
+		if plan.PayAsYouGo {
 			remaining := billingInfo.RemainingBalanceCents
 			change :=  remaining - totalCosts
 			charge, err := computeAmountToCharge(totalCosts, remaining, change)
