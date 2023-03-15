@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
+	"time"
 
 	utils "lineblocs.com/crontabs/utils"
 )
 
 // remove any logs older than retention period
-func RemoveLogs() (error) {
+func RemoveLogs() error {
 	db, err := utils.GetDBConnection()
 	if err != nil {
 		return err

@@ -5,19 +5,19 @@ import (
 	"time"
 
 	"database/sql"
-	"strconv"
 	"math"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	//now "github.com/jinzhu/now"
 
-	utils "lineblocs.com/crontabs/utils"
 	lineblocs "github.com/Lineblocs/go-helpers"
+	utils "lineblocs.com/crontabs/utils"
 )
 
 // cron tab to email users to tell them that their free trial will be ending soon
-func SendBackgroundEmails() (error) {
+func SendBackgroundEmails() error {
 	db, err := utils.GetDBConnection()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func SendBackgroundEmails() (error) {
 	var id int
 	var creatorId int
 
-    for results.Next() {
+	for results.Next() {
 		results.Scan(&id, &creatorId)
 
 		fmt.Printf("Reminding user %d to use Lineblocs!\r\n", creatorId)
@@ -65,7 +65,7 @@ func SendBackgroundEmails() (error) {
 		stmt, err := db.Prepare("UPDATE users SET last_login_reminded = NOW()")
 		if err != nil {
 			fmt.Printf("could not prepare query..\r\n")
-				continue
+			continue
 		}
 		_, err = stmt.Exec()
 		if err != nil {
@@ -88,7 +88,7 @@ func SendBackgroundEmails() (error) {
 	var balance int
 	var triggerId int
 	var percentage int
-    for results.Next() {
+	for results.Next() {
 		results.Scan(&id, &creatorId)
 		fmt.Printf("working with id: %d, creator %d\r\n", id, creatorId)
 		user, err := lineblocs.GetUserFromDB(creatorId)
@@ -115,24 +115,22 @@ func SendBackgroundEmails() (error) {
 			continue
 		}
 
-
 		results2, err := db.Query("SELECT id, percentage from usage_triggers where workspace_id = ?", workspace.Id)
 		defer results2.Close()
-    	for results2.Next() {
+		for results2.Next() {
 			results2.Scan(&triggerId, &percentage)
 			var triggerUsageId int
 			row := db.QueryRow(`SELECT id FROM users WHERE id=?`, triggerId)
 			err := row.Scan(&triggerUsageId)
-			if ( err == sql.ErrNoRows ) {  //create conference
+			if err == sql.ErrNoRows { //create conference
 				fmt.Printf("Trigger reminder already sent..\r\n")
 				continue
 			}
-			if ( err != nil ) {  //another error
+			if err != nil { //another error
 				fmt.Printf("SQL error\r\n")
 				fmt.Println(err)
 				continue
 			}
-
 
 			percentOfTrigger, err := strconv.ParseFloat(".%d", percentage)
 			if err != nil {
@@ -141,7 +139,7 @@ func SendBackgroundEmails() (error) {
 				continue
 			}
 			amount := math.Round(float64(balance) * percentOfTrigger)
-		
+
 			if billingInfo.RemainingBalanceCents <= amount {
 				args := make(map[string]string)
 				args["triggerPercent"] = fmt.Sprintf("%f", percentOfTrigger)
@@ -170,16 +168,13 @@ func SendBackgroundEmails() (error) {
 		}
 	}
 
-
-
-
 	days := "7"
-	results, err = db.Query(`SELECT id, creator_id FROM ` + "`" + `workspaces` + "`" + ` WHERE free_trial_started <= DATE_ADD(NOW(), INTERVAL -? DAY) AND free_trial_reminder_sent = 0`, days)
-    if err != nil {
+	results, err = db.Query(`SELECT id, creator_id FROM `+"`"+`workspaces`+"`"+` WHERE free_trial_started <= DATE_ADD(NOW(), INTERVAL -? DAY) AND free_trial_reminder_sent = 0`, days)
+	if err != nil {
 		return err
 	}
-    defer results.Close()
-    for results.Next() {
+	defer results.Close()
+	for results.Next() {
 		results.Scan(&id)
 		results.Scan(&creatorId)
 		user, err := lineblocs.GetUserFromDB(creatorId)
@@ -202,7 +197,7 @@ func SendBackgroundEmails() (error) {
 		stmt, err := db.Prepare("UPDATE workspaces SET free_trial_reminder_sent = 1 WHERE id = ?")
 		if err != nil {
 			fmt.Printf("could not prepare query..\r\n")
-				continue
+			continue
 		}
 		_, err = stmt.Exec(workspace.Id)
 		if err != nil {

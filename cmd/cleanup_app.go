@@ -10,22 +10,22 @@ import (
 )
 
 // cron tab to remove unset password users
-func CleanupApp() (error) {
+func CleanupApp() error {
 	db, err := utils.GetDBConnection()
 	if err != nil {
 		return err
 	}
 	days := "7"
-	var id int 
-	results, err := db.Query(`SELECT id FROM ` + "`" + `users` + "`" + ` WHERE needs_set_password_date <= DATE_ADD(NOW(), INTERVAL -? DAY) AND needs_password_set = 1`, days)
-    if err != nil {
+	var id int
+	results, err := db.Query(`SELECT id FROM `+"`"+`users`+"`"+` WHERE needs_set_password_date <= DATE_ADD(NOW(), INTERVAL -? DAY) AND needs_password_set = 1`, days)
+	if err != nil {
 		return err
 	}
-    defer results.Close()
-    for results.Next() {
+	defer results.Close()
+	for results.Next() {
 		results.Scan(&id)
 		fmt.Printf("Removing user %d\r\n", id)
-		_, err := db.Query(`DELETE FROM ` + "`" + `users` + "`" + ` WHERE id = ?`, id)
+		_, err := db.Query(`DELETE FROM `+"`"+`users`+"`"+` WHERE id = ?`, id)
 		if err != nil {
 			fmt.Printf("Could not remove %d\r\n", id)
 			continue
