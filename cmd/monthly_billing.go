@@ -188,7 +188,8 @@ func MonthlyBilling() error {
 		for results2.Next() {
 			results2.Scan(&id, &source, &moduleId, &cents, &created)
 			fmt.Printf("scanning in debit source %s\r\n", source)
-			if source == "CALL" {
+			switch source {
+			case "CALL":
 				fmt.Printf("getting call %d\r\n", moduleId)
 				call, err := lineblocs.GetCallFromDB(moduleId)
 				if err != nil {
@@ -209,7 +210,7 @@ func MonthlyBilling() error {
 				callTolls = callTolls + charge
 				usedMonthlyMinutes = usedMonthlyMinutes - minutes
 
-			} else if source == "NUMBER_RENTAL" {
+			case "NUMBER_RENTAL":
 				fmt.Printf("getting DID %d\r\n", moduleId)
 				did, err := lineblocs.GetDIDFromDB(moduleId)
 				if err != nil {
@@ -219,7 +220,6 @@ func MonthlyBilling() error {
 				}
 
 				monthlyNumberRentals += float64(did.MonthlyCost)
-			}
 		}
 		results3, err := db.Query("SELECT id, size, created_at FROM recordings WHERE user_id = ? AND created_at BETWEEN ? AND ?", workspace.CreatorId, startFormatted, endFormatted)
 		if err != sql.ErrNoRows && err != nil {
