@@ -220,6 +220,7 @@ func MonthlyBilling() error {
 				}
 
 				monthlyNumberRentals += float64(did.MonthlyCost)
+			}
 		}
 		results3, err := db.Query("SELECT id, size, created_at FROM recordings WHERE user_id = ? AND created_at BETWEEN ? AND ?", workspace.CreatorId, startFormatted, endFormatted)
 		if err != sql.ErrNoRows && err != nil {
