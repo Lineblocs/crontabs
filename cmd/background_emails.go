@@ -122,7 +122,7 @@ func SendBackgroundEmails() error {
 			var triggerUsageId int
 			row := db.QueryRow(`SELECT id FROM users WHERE id=?`, triggerId)
 			err := row.Scan(&triggerUsageId)
-			if err == sql.ErrNoRows { //create conference
+			if err == sql.ErrNoRows {
 				fmt.Printf("Trigger reminder already sent..\r\n")
 				continue
 			}

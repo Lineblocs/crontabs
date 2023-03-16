@@ -16,14 +16,14 @@ import (
 	utils "lineblocs.com/crontabs/utils"
 )
 
-func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, change float64) (float64, error) {
-	fmt.Printf("computeAmountToCharge full: %f, monthly allowed: %f, change: %f\r\n", fullCentsToCharge, monthlyAllowed, change)
+func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, minRemaining float64) (float64, error) {
+	fmt.Printf("computeAmountToCharge full: %f, monthly allowed: %f, minRemaining: %f\r\n", fullCentsToCharge, monthlyAllowed, minRemaining)
 	//when total goes below 0, only charge the amount that went below 0
-	if monthlyAllowed > 0 && change < 0 {
+	if monthlyAllowed > 0 && minRemaining < 0 {
 		percentOfDebit := 1.0
-		//change =  -5;
+		//minRemaining =  -5;
 		//usedMonthlyMinutes =  10;
-		positive := math.Abs(change)
+		positive := math.Abs(minRemaining)
 
 		set1 := float64(monthlyAllowed) + positive
 		percentage := set1 / positive
@@ -40,7 +40,7 @@ func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, ch
 	} else if monthlyAllowed <= 0 {
 		fmt.Printf("computeAmountToCharge result: %f\r\n", fullCentsToCharge)
 		return fullCentsToCharge, nil
-	} else if monthlyAllowed > 0 && change >= 0 {
+	} else if monthlyAllowed > 0 && minRemaining >= 0 {
 		fmt.Printf("computeAmountToCharge result: %f\r\n", 0.0)
 		return 0, nil
 	}
@@ -112,7 +112,7 @@ func MonthlyBilling() error {
 		var didId int
 		var monthlyCosts int
 		results1, err := db.Query("SELECT id, monthly_cost  FROM did_numbers WHERE workspace_id = ?", workspace.Id)
-		if err != sql.ErrNoRows && err != nil { //create conference
+		if err != sql.ErrNoRows && err != nil {
 			fmt.Printf("Could not get dids info..\r\n")
 			fmt.Println(err)
 			continue
@@ -188,7 +188,8 @@ func MonthlyBilling() error {
 		for results2.Next() {
 			results2.Scan(&id, &source, &moduleId, &cents, &created)
 			fmt.Printf("scanning in debit source %s\r\n", source)
-			if source == "CALL" {
+			switch source {
+			case "CALL":
 				fmt.Printf("getting call %d\r\n", moduleId)
 				call, err := lineblocs.GetCallFromDB(moduleId)
 				if err != nil {
@@ -199,8 +200,8 @@ func MonthlyBilling() error {
 				duration := call.DurationNumber
 				fmt.Printf("call duration is %d\r\n", duration)
 				minutes := float64(duration / 60)
-				change := usedMonthlyMinutes - minutes
-				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, float64(change))
+				minRemaining := usedMonthlyMinutes - minutes
+				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, float64(minRemaining))
 				if err != nil {
 					fmt.Printf("error getting charge..\r\n")
 					fmt.Println(err)
@@ -209,7 +210,7 @@ func MonthlyBilling() error {
 				callTolls = callTolls + charge
 				usedMonthlyMinutes = usedMonthlyMinutes - minutes
 
-			} else if source == "NUMBER_RENTAL" {
+			case "NUMBER_RENTAL":
 				fmt.Printf("getting DID %d\r\n", moduleId)
 				did, err := lineblocs.GetDIDFromDB(moduleId)
 				if err != nil {
@@ -233,9 +234,9 @@ func MonthlyBilling() error {
 		var createdAt time.Time
 		for results3.Next() {
 			results3.Scan(&recId, &size, &createdAt)
-			change := usedMonthlyRecordings - size
+			minRemaining := usedMonthlyRecordings - size
 			cents := math.Round(baseCosts.RecordingsPerByte * float64(size))
-			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, change)
+			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, minRemaining)
 			if err != nil {
 				fmt.Printf("error getting charge..\r\n")
 				fmt.Println(err)
@@ -255,9 +256,9 @@ func MonthlyBilling() error {
 		var faxId int
 		for results4.Next() {
 			results4.Scan(&faxId, &createdAt)
-			change := float64(usedMonthlyFax - 1)
+			minRemaining := float64(usedMonthlyFax - 1)
 			centsForFax := baseCosts.FaxPerUsed
-			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), change)
+			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), minRemaining)
 			if err != nil {
 				fmt.Printf("error getting charge..\r\n")
 				fmt.Println(err)
@@ -305,9 +306,9 @@ func MonthlyBilling() error {
 		// try to charge the debit
 		//if workspace.Plan == "pay-as-you-go" {
 		if plan.PayAsYouGo {
-			remaining := billingInfo.RemainingBalanceCents
-			change := remaining - totalCosts
-			charge, err := computeAmountToCharge(totalCosts, remaining, change)
+			remainingBalance := billingInfo.RemainingBalanceCents
+			minRemaining := remainingBalance - totalCosts
+			charge, err := computeAmountToCharge(totalCosts, remainingBalance, minRemaining)
 			if err != nil {
 				fmt.Printf("error getting charge..\r\n")
 				fmt.Println(err)
