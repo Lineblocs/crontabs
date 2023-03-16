@@ -112,7 +112,7 @@ func MonthlyBilling() error {
 		var didId int
 		var monthlyCosts int
 		results1, err := db.Query("SELECT id, monthly_cost  FROM did_numbers WHERE workspace_id = ?", workspace.Id)
-		if err != sql.ErrNoRows && err != nil { //create conference
+		if err != sql.ErrNoRows && err != nil {
 			fmt.Printf("Could not get dids info..\r\n")
 			fmt.Println(err)
 			continue
