@@ -14,6 +14,7 @@ import (
 
 	lineblocs "github.com/Lineblocs/go-helpers"
 	utils "lineblocs.com/crontabs/utils"
+	billing "lineblocs.com/crontabs/handlers/billing"
 )
 
 func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, minRemaining float64) (float64, error) {
@@ -57,7 +58,10 @@ func MonthlyBilling() error {
 	if err != nil {
 		return err
 	}
-
+	billingParams, err := utils.GetBillingParams()
+	if err != nil {
+		return err
+	}
 	start := time.Now()
 	start = start.AddDate(0, -1, 0)
 	end := time.Now()
@@ -345,11 +349,33 @@ func MonthlyBilling() error {
 				fmt.Printf("Charging remainder with card..\r\n")
 
 				cents := int(math.Ceil(charge))
-				err = lineblocs.ChargeCustomer(user, workspace, cents, invoiceDesc)
+
+				var hndl billing.BillingHandler;
+				retryAttempts, err := strconv.Atoi( billingParams.Data["retry_attempts"] )
 				if err != nil {
-					fmt.Printf("error charging user..\r\n")
-					fmt.Println(err)
-					continue
+					//retry attempts issue
+					fmt.Printf("variable retryAttempts is setup incorrectly. Please ensure that it is set to an integer. retryAttempts=%s setting value to 0", billingParams.Data["retry_attempts"] )
+					retryAttempts=0
+				}
+				switch billingParams.Provider {
+				case "stripe": 
+					key := billingParams.Data["stripe_key"]
+					hndl = billing.NewStripeBillingHandler(key, retryAttempts)
+					err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+					if err != nil {
+						fmt.Printf("error charging user..\r\n")
+						fmt.Println(err)
+						continue
+					}
+				case "braintree":
+					key := billingParams.Data["braintree_api_key"]
+					hndl = billing.NewBraintreeBillingHandler(key, retryAttempts)
+					err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+					if err != nil {
+						fmt.Printf("error charging user..\r\n")
+						fmt.Println(err)
+						continue
+					}
 				}
 				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {

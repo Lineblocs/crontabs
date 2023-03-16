@@ -15,6 +15,11 @@ import (
 
 var db* sql.DB;
 
+type BillingParams struct {
+	Provider string
+	Data map[string]string
+}
+
 func GetDBConnection() (*sql.DB, error) {
 	if db != nil {
 		return db, nil
@@ -66,3 +71,13 @@ func DispatchEmail(emailType string, user* lineblocs.User, workspace* lineblocs.
 	fmt.Println("response Body:", string(body))
 	return nil
 }
+
+
+func GetBillingParams() (*BillingParams, error) {
+	data := make(map[string]string)
+	params := BillingParams{
+		Provider: "stripe",
+		Data: data }
+	return &params, nil
+}
+
