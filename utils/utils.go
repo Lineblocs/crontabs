@@ -74,7 +74,33 @@ func DispatchEmail(emailType string, user* lineblocs.User, workspace* lineblocs.
 
 
 func GetBillingParams() (*BillingParams, error) {
+	conn, err := GetDBConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	row := conn.QueryRow("SELECT payment_gateway FROM customizations")
+
+	var paymentGateway string
+	err = row.Scan(&paymentGateway)
+	if err != nil {
+		return nil, err
+	}
+
+
+	row = conn.QueryRow("SELECT stripe_private_key FROM api_credentials")
+	if err != nil {
+		return nil, err
+	}
+
+	var stripePrivateKey string
+	err = row.Scan(&stripePrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
 	data := make(map[string]string)
+	data["stripe_key"] = stripePrivateKey
 	params := BillingParams{
 		Provider: "stripe",
 		Data: data }
