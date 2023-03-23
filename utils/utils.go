@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	lineblocs "github.com/Lineblocs/go-helpers"
+	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	_ "github.com/mailgun/mailgun-go/v4"
@@ -28,7 +28,7 @@ func GetDBConnection() (*sql.DB, error) {
 		return db, nil
 	}
 	var err error
-	db, err = lineblocs.CreateDBConn()
+	db, err = helpers.CreateDBConn()
 	if err != nil {
 		return nil, err
 	}
@@ -46,13 +46,13 @@ func CheckRowCount(rows *sql.Rows) (int, error) {
 	return count, nil
 }
 
-func DispatchEmail(emailType string, user *lineblocs.User, workspace *lineblocs.Workspace, emailArgs map[string]string) error {
+func DispatchEmail(emailType string, user *helpers.User, workspace *helpers.Workspace, emailArgs map[string]string) error {
 	url := "http://lineblocs-email/send"
 
 	email := models.Email{User: *user, Workspace: *workspace, EmailType: emailType, Args: emailArgs}
 	b, err := json.Marshal(email)
 	if err != nil {
-		lineblocs.Log(logrus.ErrorLevel, err.Error())
+		helpers.Log(logrus.ErrorLevel, err.Error())
 		return err
 	}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
@@ -66,9 +66,9 @@ func DispatchEmail(emailType string, user *lineblocs.User, workspace *lineblocs.
 	}
 	defer resp.Body.Close()
 
-	lineblocs.Log(logrus.InfoLevel, "response Status:"+resp.Status)
+	helpers.Log(logrus.InfoLevel, "response Status:"+resp.Status)
 	body, _ := ioutil.ReadAll(resp.Body)
-	lineblocs.Log(logrus.InfoLevel, "response Body:"+string(body))
+	helpers.Log(logrus.InfoLevel, "response Body:"+string(body))
 	return nil
 }
 
@@ -86,7 +86,7 @@ func Config(key string) string {
 	if loadDotEnv != "off" {
 		err := godotenv.Load(".env")
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "Error loading .env file")
+			helpers.Log(logrus.ErrorLevel, "Error loading .env file")
 		}
 	}
 	return os.Getenv(key)

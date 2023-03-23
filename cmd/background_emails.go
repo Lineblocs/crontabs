@@ -14,7 +14,7 @@ import (
 
 	//now "github.com/jinzhu/now"
 
-	lineblocs "github.com/Lineblocs/go-helpers"
+	helpers "github.com/Lineblocs/go-helpers"
 	utils "lineblocs.com/crontabs/utils"
 )
 
@@ -32,8 +32,8 @@ func SendBackgroundEmails() error {
 	dateFormatted := ago.Format("2006-01-02 15:04:05")
 	results, err := db.Query("SELECT workspaces.id, workspaces.creator_id from workspaces inner join users on users.id = workspaces.creator_id where users.last_login >= ? AND users.last_login_reminded IS NULL", dateFormatted)
 	if err != nil {
-		lineblocs.Log(logrus.PanicLevel, "error getting workspaces..\r\n")
-		lineblocs.Log(logrus.PanicLevel, err.Error())
+		helpers.Log(logrus.PanicLevel, "error getting workspaces..\r\n")
+		helpers.Log(logrus.PanicLevel, err.Error())
 		return err
 	}
 
@@ -45,34 +45,34 @@ func SendBackgroundEmails() error {
 	for results.Next() {
 		results.Scan(&id, &creatorId)
 
-		lineblocs.Log(logrus.InfoLevel, fmt.Sprintf("Reminding user %d to use Lineblocs!\r\n", creatorId))
-		user, err := lineblocs.GetUserFromDB(creatorId)
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("Reminding user %d to use Lineblocs!\r\n", creatorId))
+		user, err := helpers.GetUserFromDB(creatorId)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
 			continue
 		}
-		workspace, err := lineblocs.GetWorkspaceFromDB(id)
+		workspace, err := helpers.GetWorkspaceFromDB(id)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
 			continue
 		}
 
 		args := make(map[string]string)
 		err = utils.DispatchEmail("inactive-user", user, workspace, args)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not send email\r\n")
-			lineblocs.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
 		stmt, err := db.Prepare("UPDATE users SET last_login_reminded = NOW()")
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue
 		}
 		_, err = stmt.Exec()
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "error updating users table..\r\n")
-			lineblocs.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, "error updating users table..\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
 	}
@@ -80,8 +80,8 @@ func SendBackgroundEmails() error {
 	// usage triggers
 	results, err = db.Query("SELECT workspaces.id, workspaces.creator_id from workspaces inner join users on users.id = workspaces.creator_id")
 	if err != nil {
-		lineblocs.Log(logrus.ErrorLevel, "error getting workspaces..\r\n")
-		lineblocs.Log(logrus.ErrorLevel, err.Error())
+		helpers.Log(logrus.ErrorLevel, "error getting workspaces..\r\n")
+		helpers.Log(logrus.ErrorLevel, err.Error())
 		return err
 	}
 
@@ -92,28 +92,28 @@ func SendBackgroundEmails() error {
 	var percentage int
 	for results.Next() {
 		results.Scan(&id, &creatorId)
-		lineblocs.Log(logrus.InfoLevel, fmt.Sprintf("working with id: %d, creator %d\r\n", id, creatorId))
-		user, err := lineblocs.GetUserFromDB(creatorId)
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("working with id: %d, creator %d\r\n", id, creatorId))
+		user, err := helpers.GetUserFromDB(creatorId)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
 			continue
 		}
-		workspace, err := lineblocs.GetWorkspaceFromDB(id)
+		workspace, err := helpers.GetWorkspaceFromDB(id)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
 			continue
 		}
 		row := db.QueryRow(`SELECT id, balance FROM users_credits WHERE workspace_id=?`, workspace.Id)
 		err = row.Scan(&creditId, &balance)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get last balance of user..\r\n")
-			lineblocs.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, "could not get last balance of user..\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
-		billingInfo, err := lineblocs.GetWorkspaceBillingInfo(workspace)
+		billingInfo, err := helpers.GetWorkspaceBillingInfo(workspace)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "Could not get billing info..\r\n")
-			lineblocs.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, "Could not get billing info..\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
 
@@ -125,19 +125,19 @@ func SendBackgroundEmails() error {
 			row := db.QueryRow(`SELECT id FROM users WHERE id=?`, triggerId)
 			err := row.Scan(&triggerUsageId)
 			if err == sql.ErrNoRows {
-				lineblocs.Log(logrus.InfoLevel, "Trigger reminder already sent..\r\n")
+				helpers.Log(logrus.InfoLevel, "Trigger reminder already sent..\r\n")
 				continue
 			}
 			if err != nil { //another error
-				lineblocs.Log(logrus.ErrorLevel, "SQL error\r\n")
-				lineblocs.Log(logrus.ErrorLevel, err.Error())
+				helpers.Log(logrus.ErrorLevel, "SQL error\r\n")
+				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
 
 			percentOfTrigger, err := strconv.ParseFloat(".%d", percentage)
 			if err != nil {
-				lineblocs.Log(logrus.ErrorLevel, fmt.Sprintf("error using ParseFloat on .%d\r\n", percentage))
-				lineblocs.Log(logrus.ErrorLevel, err.Error())
+				helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error using ParseFloat on .%d\r\n", percentage))
+				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
 			amount := math.Round(float64(balance) * percentOfTrigger)
@@ -149,21 +149,21 @@ func SendBackgroundEmails() error {
 
 				err = utils.DispatchEmail("usage-trigger", user, workspace, args)
 				if err != nil {
-					lineblocs.Log(logrus.ErrorLevel, "could not send email\r\n")
-					lineblocs.Log(logrus.ErrorLevel, err.Error())
+					helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
+					helpers.Log(logrus.ErrorLevel, err.Error())
 					continue
 				}
 
 				stmt, err := db.Prepare("INSERT INTO usage_triggers_results (usage_trigger_id) VALUES (?)")
 				if err != nil {
-					lineblocs.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
+					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
 				}
 
 				defer stmt.Close()
 				_, err = stmt.Exec(triggerId)
 				if err != nil {
-					lineblocs.Log(logrus.ErrorLevel, "error create usage trigger result..\r\n")
+					helpers.Log(logrus.ErrorLevel, "error create usage trigger result..\r\n")
 					continue
 				}
 			}
@@ -179,32 +179,32 @@ func SendBackgroundEmails() error {
 	for results.Next() {
 		results.Scan(&id)
 		results.Scan(&creatorId)
-		user, err := lineblocs.GetUserFromDB(creatorId)
+		user, err := helpers.GetUserFromDB(creatorId)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
 			continue
 		}
-		workspace, err := lineblocs.GetWorkspaceFromDB(id)
+		workspace, err := helpers.GetWorkspaceFromDB(id)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
 			continue
 		}
 		args := make(map[string]string)
 		err = utils.DispatchEmail("free-trial-ending", user, workspace, args)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not send email\r\n")
-			lineblocs.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
 		stmt, err := db.Prepare("UPDATE workspaces SET free_trial_reminder_sent = 1 WHERE id = ?")
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
+			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue
 		}
 		_, err = stmt.Exec(workspace.Id)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, "error updating DB..\r\n")
-			lineblocs.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, "error updating DB..\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
 	}

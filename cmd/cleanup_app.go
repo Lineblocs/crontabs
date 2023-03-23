@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	lineblocs "github.com/Lineblocs/go-helpers"
+	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -28,10 +28,10 @@ func CleanupApp() error {
 	defer results.Close()
 	for results.Next() {
 		results.Scan(&id)
-		lineblocs.Log(logrus.InfoLevel, fmt.Sprintf("Removing user %d\r\n", id))
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("Removing user %d\r\n", id))
 		_, err := db.Query(`DELETE FROM `+"`"+`users`+"`"+` WHERE id = ?`, id)
 		if err != nil {
-			lineblocs.Log(logrus.ErrorLevel, fmt.Sprintf("Could not remove %d\r\n", id))
+			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("Could not remove %d\r\n", id))
 			continue
 		}
 	}
