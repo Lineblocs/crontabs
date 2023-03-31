@@ -1,10 +1,12 @@
 package cmd
 
 import (
-	"fmt"
+	"time"
+
+	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
-	"time"
+	"github.com/sirupsen/logrus"
 
 	utils "lineblocs.com/crontabs/utils"
 )
@@ -22,8 +24,8 @@ func RemoveLogs() error {
 	dateFormatted := dateNow.Format("2006-01-02 15:04:05")
 	_, err = db.Exec("DELETE from debugger_logs where created_at >= ?", dateFormatted)
 	if err != nil {
-		fmt.Printf("error occured in log removing\r\n")
-		fmt.Println(err)
+		helpers.Log(logrus.ErrorLevel, "error occured in log removing\r\n")
+		helpers.Log(logrus.ErrorLevel, err.Error())
 		return err
 	}
 	return nil

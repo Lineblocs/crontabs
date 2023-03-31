@@ -1,46 +1,53 @@
 package main
 
 import (
-	"fmt"
+	"os"
+
+	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
+	"github.com/sirupsen/logrus"
 	cmd "lineblocs.com/crontabs/cmd"
-	"os"
+	"lineblocs.com/crontabs/utils"
 	//now "github.com/jinzhu/now"
 )
 
 func main() {
 	var err error
+
+	logDestination := utils.Config("LOG_DESTINATIONS")
+	helpers.InitLogrus(logDestination)
+
 	args := os.Args[1:]
 	if len(args) == 0 {
-		fmt.Println("Please provide command")
+		helpers.Log(logrus.InfoLevel, "Please provide command")
 		return
 	}
 	command := args[0]
 	switch command {
 	case "cleanup":
-		fmt.Println("App cleanup started...")
+		helpers.Log(logrus.InfoLevel, "App cleanup started...")
 		err = cmd.CleanupApp()
 		if err != nil {
-			fmt.Print(err)
+			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	case "background_emails":
-		fmt.Println("sending background emails")
+		helpers.Log(logrus.InfoLevel, "sending background emails")
 		err = cmd.SendBackgroundEmails()
 		if err != nil {
-			fmt.Print(err)
+			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	case "monthly_billing":
-		fmt.Println("sending background emails")
+		helpers.Log(logrus.InfoLevel, "sending background emails")
 		err = cmd.MonthlyBilling()
 		if err != nil {
-			fmt.Print(err)
+			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	case "remove_logs":
-		fmt.Println("sending background emails")
+		helpers.Log(logrus.InfoLevel, "sending background emails")
 		err = cmd.RemoveLogs()
 		if err != nil {
-			fmt.Print(err)
+			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	}
 }
