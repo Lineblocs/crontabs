@@ -15,40 +15,9 @@ import (
 	//now "github.com/jinzhu/now"
 
 	helpers "github.com/Lineblocs/go-helpers"
-	billing "lineblocs.com/crontabs/handlers/billing"
 	utils "lineblocs.com/crontabs/utils"
 )
 
-
-func chargeCustomer(billingParams *utils.BillingParams, user *helpers.User, workspace *helpers.Workspace, cents int, invoiceDesc string) (error) {
-	var hndl billing.BillingHandler
-	retryAttempts, err := strconv.Atoi(billingParams.Data["retry_attempts"])
-	if err != nil {
-		//retry attempts issue
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("variable retryAttempts is setup incorrectly. Please ensure that it is set to an integer. retryAttempts=%s setting value to 0", billingParams.Data["retry_attempts"]))
-		retryAttempts = 0
-	}
-
-	switch billingParams.Provider {
-	case "stripe":
-		key := billingParams.Data["stripe_key"]
-		hndl = billing.NewStripeBillingHandler(key, retryAttempts)
-		err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
-		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
-		}
-	case "braintree":
-		key := billingParams.Data["braintree_api_key"]
-		hndl = billing.NewBraintreeBillingHandler(key, retryAttempts)
-		err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
-		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
-		}
-	}
-	return err
-}
 
 func computeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minutes float64) (float64, error) {
 	minAfterDebit := availMinutes - minutes
@@ -380,7 +349,7 @@ func MonthlyBilling() error {
 
 				cents := int(math.Ceil(charge))
 
-				err = chargeCustomer(billingParams, user, workspace, cents, invoiceDesc)
+				err = utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
 				if err != nil {
 					// could not charge card.
 					// update invoice record and mark as outstanding
@@ -414,7 +383,7 @@ func MonthlyBilling() error {
 			// regular membership charge. only try to charge a card
 			helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
 			cents := int(math.Ceil(totalCosts))
-			err := chargeCustomer(billingParams, user, workspace, cents, invoiceDesc)
+			err := utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
