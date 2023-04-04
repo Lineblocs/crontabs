@@ -3,6 +3,7 @@ package cmd
 import (
 
 	"strconv"
+	"time"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -64,13 +65,14 @@ func RetryFailedBillingAttempts() error {
 			}
 			continue
 		}
+		currentTime := time.Now()
 		// mark as paid
-		stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
+		stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ?, last_attempted = ?, num_attempts = num_attempts + 1 WHERE id = ?")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue
 		}
-		_, err = stmt.Exec(cents, invoiceId)
+		_, err = stmt.Exec(cents, currentTime, invoiceId)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())

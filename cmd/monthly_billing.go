@@ -292,7 +292,7 @@ func MonthlyBilling() error {
 			continue
 		}
 		defer stmt.Close()
-		res, err := stmt.Exec(cents, callTolls, recordingCosts, faxCosts, membershipCosts, monthlyNumberRentals, "INCOMPLETE", workspace.CreatorId, workspace.Id, currentTime)
+		res, err := stmt.Exec(cents, callTolls, recordingCosts, faxCosts, membershipCosts, monthlyNumberRentals, "INCOMPLETE", workspace.CreatorId, workspace.Id, currentTime, currentTime)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error creating invoice..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
@@ -353,12 +353,12 @@ func MonthlyBilling() error {
 				if err != nil {
 					// could not charge card.
 					// update invoice record and mark as outstanding
-					stmt, err = db.Prepare("UPDATE users_invoices SET source = 'CARD', status = 'INCOMPLETE' WHERE id = ?")
+					stmt, err = db.Prepare("UPDATE users_invoices SET source = 'CARD', status = 'INCOMPLETE', num_attempts = 1, last_attempted = ? WHERE id = ?")
 					if err != nil {
 						helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 						continue
 					}
-					_, err = stmt.Exec(invoiceId)
+					_, err = stmt.Exec(currentTime, invoiceId)
 					if err != nil {
 						helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 						helpers.Log(logrus.ErrorLevel, err.Error())
@@ -366,12 +366,12 @@ func MonthlyBilling() error {
 					}
 					continue
 				}
-				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
+				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, last_attempted = ?, num_attempts = 1 WHERE id = ?")
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
 				}
-				_, err = stmt.Exec(totalCosts, invoiceId)
+				_, err = stmt.Exec(totalCosts, currentTime, invoiceId)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
