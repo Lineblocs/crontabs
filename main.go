@@ -44,7 +44,7 @@ func main() {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	case "retry_failed_billing_attempts":
-		helpers.Log(logrus.InfoLevel, "running monthly billing routines")
+		helpers.Log(logrus.InfoLevel, "reattempting to bill unpaid invoices")
 		err = cmd.RetryFailedBillingAttempts()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, err.Error())
