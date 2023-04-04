@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"math"
 	"strconv"
-
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -15,40 +15,38 @@ import (
 	//now "github.com/jinzhu/now"
 
 	helpers "github.com/Lineblocs/go-helpers"
-	billing "lineblocs.com/crontabs/handlers/billing"
 	utils "lineblocs.com/crontabs/utils"
 )
 
-func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, minRemaining float64) (float64, error) {
-	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, monthly allowed: %f, minRemaining: %f\r\n", fullCentsToCharge, monthlyAllowed, minRemaining))
-	//when total goes below 0, only charge the amount that went below 0
-	if monthlyAllowed > 0 && minRemaining < 0 {
-		percentOfDebit := 1.0
-		//minRemaining =  -5;
-		//usedMonthlyMinutes =  10;
-		positive := math.Abs(minRemaining)
 
-		set1 := float64(monthlyAllowed) + positive
-		percentage := set1 / positive
-		percentOfDebit, err := strconv.ParseFloat(".%d", int(math.Round(percentage)))
+func computeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minutes float64) (float64, error) {
+	minAfterDebit := availMinutes - minutes
+	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
+	//when total goes below 0, only charge the amount that went below 0
+	// ensure availMinutes < minutes
+	if availMinutes > 0 && minAfterDebit < 0 && availMinutes <= minutes {
+		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - availMinutes), 'f', -1, 64)), 8)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error using ParseFloat on .%f\r\n", percentage))
-			helpers.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
 			return 0, err
 		}
-
-		centsToCharge := math.Ceil(float64(fullCentsToCharge) * percentOfDebit)
+		
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge percentage = %f, rounded = %f", percentOfDebit, math.Round(percentOfDebit)))
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge debit = %f", percentOfDebit))
+		centsToCharge := math.Abs( float64(fullCentsToCharge) * percentOfDebit )
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", centsToCharge))
-		return centsToCharge, nil
-	} else if monthlyAllowed <= 0 {
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
-		return fullCentsToCharge, nil
-	} else if monthlyAllowed > 0 && minRemaining >= 0 {
+		return math.Max(1,centsToCharge), nil
+	} else if availMinutes >= minutes { // user has enough balance, no need to charge
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 		return 0, nil
+	} else if availMinutes <= 0 { // no minutes remaining, charge the full amount
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
+		return fullCentsToCharge, nil
 	}
+
+	// this should not happen
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
-	return 0, nil
+	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
 }
 
 // cron tab to remove unset password users
@@ -206,8 +204,7 @@ func MonthlyBilling() error {
 				duration := call.DurationNumber
 				helpers.Log(logrus.InfoLevel, fmt.Sprintf("call duration is %d\r\n", duration))
 				minutes := float64(duration / 60)
-				minRemaining := usedMonthlyMinutes - minutes
-				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, float64(minRemaining))
+				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, minutes)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
@@ -240,9 +237,8 @@ func MonthlyBilling() error {
 		var createdAt time.Time
 		for results3.Next() {
 			results3.Scan(&recId, &size, &createdAt)
-			minRemaining := usedMonthlyRecordings - size
 			cents := math.Round(baseCosts.RecordingsPerByte * float64(size))
-			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, minRemaining)
+			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, size)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -262,9 +258,9 @@ func MonthlyBilling() error {
 		var faxId int
 		for results4.Next() {
 			results4.Scan(&faxId, &createdAt)
-			minRemaining := float64(usedMonthlyFax - 1)
+			totalFax := float64( plan.Fax )
 			centsForFax := baseCosts.FaxPerUsed
-			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), minRemaining)
+			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), totalFax)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -321,7 +317,7 @@ func MonthlyBilling() error {
 
 				continue
 			}
-			if charge == totalCosts { //user has enough credits
+			if remainingBalance >= totalCosts { //user has enough credits
 				helpers.Log(logrus.InfoLevel, "User has enough credits. Charging balance\r\n")
 				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
@@ -335,7 +331,7 @@ func MonthlyBilling() error {
 					continue
 				}
 			} else {
-				helpers.Log(logrus.InfoLevel, "User does not have enough credits. Charging balance as much as possible\r\n")
+				helpers.Log(logrus.InfoLevel, "User does not have enough credits. Charging any payment sources\r\n")
 				// update debit to reflect exactly how much we can charge
 				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
@@ -353,34 +349,24 @@ func MonthlyBilling() error {
 
 				cents := int(math.Ceil(charge))
 
-				var hndl billing.BillingHandler
-				retryAttempts, err := strconv.Atoi(billingParams.Data["retry_attempts"])
+				err = utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
 				if err != nil {
-					//retry attempts issue
-					helpers.Log(logrus.InfoLevel, fmt.Sprintf("variable retryAttempts is setup incorrectly. Please ensure that it is set to an integer. retryAttempts=%s setting value to 0", billingParams.Data["retry_attempts"]))
-					retryAttempts = 0
-				}
-				switch billingParams.Provider {
-				case "stripe":
-					key := billingParams.Data["stripe_key"]
-					hndl = billing.NewStripeBillingHandler(key, retryAttempts)
-					err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+					// could not charge card.
+					// update invoice record and mark as outstanding
+					stmt, err = db.Prepare("UPDATE users_invoices SET source = 'CARD', status = 'INCOMPLETE' WHERE id = ?")
 					if err != nil {
-						helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
+						helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
+						continue
+					}
+					_, err = stmt.Exec(invoiceId)
+					if err != nil {
+						helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 						helpers.Log(logrus.ErrorLevel, err.Error())
 						continue
 					}
-				case "braintree":
-					key := billingParams.Data["braintree_api_key"]
-					hndl = billing.NewBraintreeBillingHandler(key, retryAttempts)
-					err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
-					if err != nil {
-						helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
-						helpers.Log(logrus.ErrorLevel, err.Error())
-						continue
-					}
+					continue
 				}
-				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS', cents_collected = ? WHERE id = ?")
+				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
@@ -393,17 +379,15 @@ func MonthlyBilling() error {
 				}
 
 			}
-			continue
-
 		} else {
 			// regular membership charge. only try to charge a card
 			helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
 			cents := int(math.Ceil(totalCosts))
-			err = helpers.ChargeCustomer(user, workspace, cents, invoiceDesc)
+			err := utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
-				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', cents_collected = 0.0 WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', cents_collected = 0.0 WHERE id = ?")
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
@@ -414,7 +398,7 @@ func MonthlyBilling() error {
 					helpers.Log(logrus.ErrorLevel, err.Error())
 					continue
 				}
-
+				// TODO send email when any biliing attempts fail
 				continue
 			}
 			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")

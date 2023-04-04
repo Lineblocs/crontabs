@@ -38,13 +38,19 @@ func main() {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	case "monthly_billing":
-		helpers.Log(logrus.InfoLevel, "sending background emails")
+		helpers.Log(logrus.InfoLevel, "running monthly billing routines")
 		err = cmd.MonthlyBilling()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
+	case "retry_failed_billing_attempts":
+		helpers.Log(logrus.InfoLevel, "reattempting to bill unpaid invoices")
+		err = cmd.RetryFailedBillingAttempts()
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, err.Error())
+		}
 	case "remove_logs":
-		helpers.Log(logrus.InfoLevel, "sending background emails")
+		helpers.Log(logrus.InfoLevel, "removing old logs")
 		err = cmd.RemoveLogs()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, err.Error())
