@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"math"
 	"strconv"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -69,12 +70,14 @@ func computeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 	} else if availMinutes >= minutes { // user has enough balance, no need to charge
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 		return 0, nil
-	} else if availMinutes <= 0 {
+	} else if availMinutes <= 0 { // no minutes remaining, charge the full amount
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
 		return fullCentsToCharge, nil
 	}
+
+	// this should not happen
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
-	return 0, nil
+	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
 }
 
 // cron tab to remove unset password users
