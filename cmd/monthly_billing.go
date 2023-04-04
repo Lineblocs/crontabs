@@ -24,12 +24,10 @@ func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, mi
 	//when total goes below 0, only charge the amount that went below 0
 	if monthlyAllowed > 0 && minRemaining < 0 {
 		percentOfDebit := 1.0
-		//minRemaining =  -5;
-		//usedMonthlyMinutes =  10;
-		positive := math.Abs(minRemaining)
+		minutesToBill := math.Abs(minRemaining)
 
-		set1 := float64(monthlyAllowed) + positive
-		percentage := set1 / positive
+		totalMinBilled := float64(monthlyAllowed) + minutesToBill
+		percentage := totalMinBilled / positive
 		percentOfDebit, err := strconv.ParseFloat(".%d", int(math.Round(percentage)))
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error using ParseFloat on .%f\r\n", percentage))
