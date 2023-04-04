@@ -27,7 +27,7 @@ func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, mi
 		minutesToBill := math.Abs(minRemaining)
 
 		totalMinBilled := float64(monthlyAllowed) + minutesToBill
-		percentage := totalMinBilled / positive
+		percentage := totalMinBilled / minutesToBill
 		percentOfDebit, err := strconv.ParseFloat(".%d", int(math.Round(percentage)))
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error using ParseFloat on .%f\r\n", percentage))
