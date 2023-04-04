@@ -72,9 +72,6 @@ func computeAmountToCharge(fullCentsToCharge float64, usedMinutes float64, minut
 	} else if usedMinutes <= 0 {
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
 		return fullCentsToCharge, nil
-	} else if usedMinutes > 0 && minAfterDebit >= 0 {
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
-		return 0, nil
 	}
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 	return 0, nil
