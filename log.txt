@@ -1,0 +1,447 @@
+INFO: 2023-04-04 12:05:48 - sending background emails
+INFO: 2023-04-04 12:05:48 - computeAmountToCharge full: 10000.000000, monthly allowed: 100.000000, minRemaining: 10.000000
+
+INFO: 2023-04-04 12:05:48 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 12:07:18 - sending background emails
+INFO: 2023-04-04 12:07:18 - computeAmountToCharge full: 10000.000000, monthly allowed: 0.000000, minRemaining: 10.000000
+
+INFO: 2023-04-04 12:07:18 - computeAmountToCharge result: 10000.000000
+
+INFO: 2023-04-04 12:07:28 - sending background emails
+INFO: 2023-04-04 12:07:28 - computeAmountToCharge full: 10000.000000, monthly allowed: 10.000000, minRemaining: 10.000000
+
+INFO: 2023-04-04 12:07:28 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 12:13:06 - sending background emails
+INFO: 2023-04-04 12:13:06 - computeAmountToCharge full: 10000.000000, monthly allowed: 10.000000, minRemaining: 0.000000
+
+INFO: 2023-04-04 12:13:06 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 12:24:37 - sending background emails
+INFO: 2023-04-04 12:24:37 - computeAmountToCharge full: 10000.000000, minutes 0.000000, monthly allowed: 10.000000, minRemaining: 10.000000
+
+INFO: 2023-04-04 12:24:37 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 12:28:59 - sending background emails
+INFO: 2023-04-04 12:28:59 - computeAmountToCharge full: 10000.000000, minutes 0.000000, monthly allowed: 10.000000, minRemaining: 10.000000
+
+INFO: 2023-04-04 12:28:59 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 12:29:27 - sending background emails
+INFO: 2023-04-04 12:29:27 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 10.000000, minRemaining: 0.000000
+
+INFO: 2023-04-04 12:29:27 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 12:29:34 - sending background emails
+INFO: 2023-04-04 12:29:34 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 0.000000, minRemaining: -10.000000
+
+INFO: 2023-04-04 12:29:34 - computeAmountToCharge result: 10000.000000
+
+INFO: 2023-04-04 12:29:43 - sending background emails
+INFO: 2023-04-04 12:29:43 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 5.000000, minRemaining: -5.000000
+
+ERROR: 2023-04-04 12:29:43 - error using ParseFloat on .2.000000
+
+ERROR: 2023-04-04 12:29:43 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:30:11 - sending background emails
+INFO: 2023-04-04 12:30:11 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 5.000000, minRemaining: -5.000000
+
+ERROR: 2023-04-04 12:30:11 - error using ParseFloat on .2.000000
+
+ERROR: 2023-04-04 12:30:11 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:30:39 - sending background emails
+INFO: 2023-04-04 12:30:39 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 6.000000, minRemaining: -4.000000
+
+ERROR: 2023-04-04 12:30:39 - error using ParseFloat on .2.500000
+
+ERROR: 2023-04-04 12:30:39 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:30:57 - sending background emails
+INFO: 2023-04-04 12:30:57 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minRemaining: -6.000000
+
+ERROR: 2023-04-04 12:30:57 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:30:57 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:32:46 - sending background emails
+INFO: 2023-04-04 12:32:46 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+ERROR: 2023-04-04 12:32:46 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:32:46 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:35:14 - sending background emails
+INFO: 2023-04-04 12:35:14 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+ERROR: 2023-04-04 12:35:14 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:35:14 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:36:54 - sending background emails
+INFO: 2023-04-04 12:36:54 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:36:54 - computeAmountToCharge percentage = 1.666667
+ERROR: 2023-04-04 12:36:54 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:36:54 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:41:13 - sending background emails
+INFO: 2023-04-04 12:41:13 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:41:13 - computeAmountToCharge percentage = 1.666667, rounded = %!d(float64=2)
+ERROR: 2023-04-04 12:41:13 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:41:13 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:41:25 - sending background emails
+INFO: 2023-04-04 12:41:25 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:41:25 - computeAmountToCharge percentage = 1.666667, rounded = 2.000000
+ERROR: 2023-04-04 12:41:25 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:41:25 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:42:18 - sending background emails
+INFO: 2023-04-04 12:42:18 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:42:18 - computeAmountToCharge percentage = 1.666667, rounded = %!f(int=2)
+ERROR: 2023-04-04 12:42:18 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:42:18 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:42:27 - sending background emails
+INFO: 2023-04-04 12:42:27 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:42:27 - computeAmountToCharge percentage = 1.666667, rounded = 2
+ERROR: 2023-04-04 12:42:27 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:42:27 - strconv.ParseFloat: parsing ".%d": invalid syntax
+INFO: 2023-04-04 12:43:40 - sending background emails
+INFO: 2023-04-04 12:43:40 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:43:40 - computeAmountToCharge percentage = 1.666667, rounded = 2
+ERROR: 2023-04-04 12:43:40 - error using ParseFloat on .1.666667
+
+ERROR: 2023-04-04 12:43:40 - strconv.ParseFloat: parsing "%.2f": invalid syntax
+INFO: 2023-04-04 12:47:15 - sending background emails
+INFO: 2023-04-04 12:47:15 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:47:15 - computeAmountToCharge percentage = 1.666667, rounded = 2
+INFO: 2023-04-04 12:47:15 - computeAmountToCharge debit = %!d(float64=0.02)
+INFO: 2023-04-04 12:47:39 - sending background emails
+INFO: 2023-04-04 12:47:39 - computeAmountToCharge full: 10000.000000, minutes 10.000000, monthly allowed: 4.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:47:39 - computeAmountToCharge percentage = 1.666667, rounded = 2
+INFO: 2023-04-04 12:47:39 - computeAmountToCharge debit = 0.020000
+INFO: 2023-04-04 12:50:18 - sending background emails
+INFO: 2023-04-04 12:50:18 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:50:18 - computeAmountToCharge percentage = 1.666667, rounded = 2
+INFO: 2023-04-04 12:50:18 - computeAmountToCharge debit = 0.020000
+INFO: 2023-04-04 12:51:27 - sending background emails
+INFO: 2023-04-04 12:51:27 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:51:27 - computeAmountToCharge percentage = 1.666667, rounded = 2
+INFO: 2023-04-04 12:51:27 - computeAmountToCharge debit = 0.020000
+INFO: 2023-04-04 12:53:45 - sending background emails
+INFO: 2023-04-04 12:53:45 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:53:45 - computeAmountToCharge percentage = 1.666667, rounded = 2
+INFO: 2023-04-04 12:53:45 - computeAmountToCharge debit = 0.020000
+INFO: 2023-04-04 12:55:38 - sending background emails
+INFO: 2023-04-04 12:55:38 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:55:38 - computeAmountToCharge percentage = 1.6666666666666667E+00, rounded = 2
+INFO: 2023-04-04 12:55:38 - computeAmountToCharge debit = 0.020000
+INFO: 2023-04-04 12:56:03 - sending background emails
+INFO: 2023-04-04 12:56:03 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:56:55 - sending background emails
+INFO: 2023-04-04 12:56:55 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:56:55 - computeAmountToCharge percentage = 1.6666666666666667, rounded = 2
+INFO: 2023-04-04 12:56:55 - computeAmountToCharge debit = 0.020000
+INFO: 2023-04-04 12:57:39 - sending background emails
+INFO: 2023-04-04 12:57:39 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 12:57:39 - computeAmountToCharge percentage = 1.6666666666666667, rounded = 2
+INFO: 2023-04-04 12:57:39 - computeAmountToCharge debit = 0.016667
+INFO: 2023-04-04 13:00:37 - sending background emails
+INFO: 2023-04-04 13:00:37 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:00:37 - computeAmountToCharge percentage = 16666666666666667, rounded = 2
+INFO: 2023-04-04 13:00:37 - computeAmountToCharge debit = 0.166667
+INFO: 2023-04-04 13:02:11 - sending background emails
+INFO: 2023-04-04 13:02:11 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:02:11 - computeAmountToCharge percentage = 16666666666666667, rounded = 2
+INFO: 2023-04-04 13:02:11 - computeAmountToCharge debit = 0.166667
+INFO: 2023-04-04 13:02:27 - sending background emails
+INFO: 2023-04-04 13:02:27 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:02:27 - computeAmountToCharge percentage = 16666666666666667, rounded = 2
+INFO: 2023-04-04 13:02:27 - computeAmountToCharge debit = 0.166667
+INFO: 2023-04-04 13:02:27 - computeAmountToCharge result: 1667.000000
+
+INFO: 2023-04-04 13:07:11 - sending background emails
+INFO: 2023-04-04 13:07:11 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:07:11 - computeAmountToCharge percentage = 06, rounded = 1
+INFO: 2023-04-04 13:07:11 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:07:11 - computeAmountToCharge result: 600.000000
+
+INFO: 2023-04-04 13:10:59 - sending background emails
+INFO: 2023-04-04 13:10:59 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:10:59 - computeAmountToCharge percentage = 0.600000, rounded = %!d(float64=1)
+INFO: 2023-04-04 13:10:59 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:10:59 - computeAmountToCharge result: 10000.000000
+
+INFO: 2023-04-04 13:12:12 - sending background emails
+INFO: 2023-04-04 13:12:12 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:12:12 - computeAmountToCharge percentage = 0.400000, rounded = %!d(float64=0)
+INFO: 2023-04-04 13:12:12 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:12:12 - computeAmountToCharge result: 10000.000000
+
+INFO: 2023-04-04 13:14:07 - sending background emails
+INFO: 2023-04-04 13:14:07 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:14:07 - computeAmountToCharge percentage = 0.060000, rounded = %!d(float64=0)
+INFO: 2023-04-04 13:14:07 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:14:07 - computeAmountToCharge result: 10000.000000
+
+INFO: 2023-04-04 13:15:03 - sending background emails
+INFO: 2023-04-04 13:15:03 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:15:03 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:15:03 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:15:03 - computeAmountToCharge result: 600.000000
+
+INFO: 2023-04-04 13:17:00 - sending background emails
+INFO: 2023-04-04 13:17:00 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:17:00 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:17:00 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:17:00 - computeAmountToCharge result: 600.000000
+
+INFO: 2023-04-04 13:17:30 - sending background emails
+INFO: 2023-04-04 13:17:30 - computeAmountToCharge full: 20000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:17:30 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:17:30 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:17:30 - computeAmountToCharge result: 1200.000000
+
+INFO: 2023-04-04 13:17:46 - sending background emails
+INFO: 2023-04-04 13:17:46 - computeAmountToCharge full: 4000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:17:46 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:17:46 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:17:46 - computeAmountToCharge result: 240.000000
+
+INFO: 2023-04-04 13:17:56 - sending background emails
+INFO: 2023-04-04 13:17:56 - computeAmountToCharge full: 10.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:17:56 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:17:56 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:17:56 - computeAmountToCharge result: 1.000000
+
+INFO: 2023-04-04 13:18:06 - sending background emails
+INFO: 2023-04-04 13:18:06 - computeAmountToCharge full: 0.100000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:18:06 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:18:06 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:18:06 - computeAmountToCharge result: 1.000000
+
+INFO: 2023-04-04 13:19:32 - sending background emails
+INFO: 2023-04-04 13:19:32 - computeAmountToCharge full: 0.100000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:19:32 - computeAmountToCharge percentage = 0.060000, rounded = 0.000000
+INFO: 2023-04-04 13:19:32 - computeAmountToCharge debit = 0.060000
+INFO: 2023-04-04 13:19:32 - computeAmountToCharge result: 0.006000
+
+INFO: 2023-04-04 13:20:15 - sending background emails
+INFO: 2023-04-04 13:20:15 - computeAmountToCharge full: 0.100000, used minutes 4.000000, minutes 200.000000, minAfterDebit: -196.000000
+
+INFO: 2023-04-04 13:20:15 - computeAmountToCharge percentage = 1.960000, rounded = 2.000000
+INFO: 2023-04-04 13:20:15 - computeAmountToCharge debit = 1.960000
+INFO: 2023-04-04 13:20:15 - computeAmountToCharge result: 0.196000
+
+INFO: 2023-04-04 13:22:08 - sending background emails
+INFO: 2023-04-04 13:22:08 - computeAmountToCharge full: 0.100000, used minutes 4.000000, minutes 200.000000, minAfterDebit: -196.000000
+
+INFO: 2023-04-04 13:22:08 - computeAmountToCharge percentage = 1.960000, rounded = 2.000000
+INFO: 2023-04-04 13:22:08 - computeAmountToCharge debit = 1.960000
+INFO: 2023-04-04 13:22:08 - computeAmountToCharge result: 0.196000
+
+INFO: 2023-04-04 13:22:37 - sending background emails
+INFO: 2023-04-04 13:22:37 - computeAmountToCharge full: 10.000000, used minutes 4.000000, minutes 200.000000, minAfterDebit: -196.000000
+
+INFO: 2023-04-04 13:22:37 - computeAmountToCharge percentage = 1.960000, rounded = 2.000000
+INFO: 2023-04-04 13:22:37 - computeAmountToCharge debit = 1.960000
+INFO: 2023-04-04 13:22:37 - computeAmountToCharge result: 19.600000
+
+INFO: 2023-04-04 13:25:05 - sending background emails
+INFO: 2023-04-04 13:25:05 - computeAmountToCharge full: 10.000000, used minutes 4.000000, minutes 200.000000, minAfterDebit: -196.000000
+
+INFO: 2023-04-04 13:25:05 - computeAmountToCharge percentage = 1.960000, rounded = 2.000000
+INFO: 2023-04-04 13:25:05 - computeAmountToCharge debit = 1.960000
+INFO: 2023-04-04 13:25:05 - computeAmountToCharge result: 19.600000
+
+INFO: 2023-04-04 13:28:56 - sending background emails
+INFO: 2023-04-04 13:28:56 - computeAmountToCharge full: 10.000000, used minutes 4.000000, minutes 200.000000, minAfterDebit: -196.000000
+
+INFO: 2023-04-04 13:28:56 - computeAmountToCharge percentage = 19.600000, rounded = 20.000000
+INFO: 2023-04-04 13:28:56 - computeAmountToCharge debit = 19.600000
+INFO: 2023-04-04 13:28:56 - computeAmountToCharge result: 196.000000
+
+INFO: 2023-04-04 13:29:30 - sending background emails
+INFO: 2023-04-04 13:29:30 - computeAmountToCharge full: 10.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:29:30 - computeAmountToCharge percentage = 0.600000, rounded = 1.000000
+INFO: 2023-04-04 13:29:30 - computeAmountToCharge debit = 0.600000
+INFO: 2023-04-04 13:29:30 - computeAmountToCharge result: 6.000000
+
+INFO: 2023-04-04 13:29:43 - sending background emails
+INFO: 2023-04-04 13:29:43 - computeAmountToCharge full: 10000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:29:43 - computeAmountToCharge percentage = 0.600000, rounded = 1.000000
+INFO: 2023-04-04 13:29:43 - computeAmountToCharge debit = 0.600000
+INFO: 2023-04-04 13:29:43 - computeAmountToCharge result: 6000.000000
+
+INFO: 2023-04-04 13:29:53 - sending background emails
+INFO: 2023-04-04 13:29:53 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:29:53 - computeAmountToCharge percentage = 0.600000, rounded = 1.000000
+INFO: 2023-04-04 13:29:53 - computeAmountToCharge debit = 0.600000
+INFO: 2023-04-04 13:29:53 - computeAmountToCharge result: 600.000000
+
+INFO: 2023-04-04 13:30:11 - sending background emails
+INFO: 2023-04-04 13:30:11 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 3000.000000, minAfterDebit: -2996.000000
+
+INFO: 2023-04-04 13:30:11 - computeAmountToCharge percentage = 299.600000, rounded = 300.000000
+INFO: 2023-04-04 13:30:11 - computeAmountToCharge debit = 299.600000
+INFO: 2023-04-04 13:30:11 - computeAmountToCharge result: 299600.000000
+
+INFO: 2023-04-04 13:30:33 - sending background emails
+INFO: 2023-04-04 13:30:33 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 3000.000000, minAfterDebit: -2996.000000
+
+INFO: 2023-04-04 13:30:33 - computeAmountToCharge percentage = 299.600000, rounded = 300.000000
+INFO: 2023-04-04 13:30:33 - computeAmountToCharge debit = 299.600000
+INFO: 2023-04-04 13:30:33 - computeAmountToCharge result: 299600.000000
+
+INFO: 2023-04-04 13:33:09 - sending background emails
+INFO: 2023-04-04 13:33:09 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 3000.000000, minAfterDebit: -2996.000000
+
+INFO: 2023-04-04 13:33:09 - computeAmountToCharge percentage = 299.600000, rounded = 300.000000
+INFO: 2023-04-04 13:33:09 - computeAmountToCharge debit = 299.600000
+INFO: 2023-04-04 13:33:09 - computeAmountToCharge result: 299600.000000
+
+INFO: 2023-04-04 13:33:23 - sending background emails
+INFO: 2023-04-04 13:33:23 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 10.000000, minAfterDebit: -6.000000
+
+INFO: 2023-04-04 13:33:23 - computeAmountToCharge percentage = 0.600000, rounded = 1.000000
+INFO: 2023-04-04 13:33:23 - computeAmountToCharge debit = 0.600000
+INFO: 2023-04-04 13:33:23 - computeAmountToCharge result: 600.000000
+
+INFO: 2023-04-04 13:33:32 - sending background emails
+INFO: 2023-04-04 13:33:32 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 100.000000, minAfterDebit: -96.000000
+
+INFO: 2023-04-04 13:33:32 - computeAmountToCharge percentage = 9.600000, rounded = 10.000000
+INFO: 2023-04-04 13:33:32 - computeAmountToCharge debit = 9.600000
+INFO: 2023-04-04 13:33:32 - computeAmountToCharge result: 9600.000000
+
+INFO: 2023-04-04 13:33:55 - sending background emails
+INFO: 2023-04-04 13:33:55 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 1000.000000, minAfterDebit: -996.000000
+
+INFO: 2023-04-04 13:33:55 - computeAmountToCharge percentage = 99.600000, rounded = 100.000000
+INFO: 2023-04-04 13:33:55 - computeAmountToCharge debit = 99.600000
+INFO: 2023-04-04 13:33:55 - computeAmountToCharge result: 99600.000000
+
+INFO: 2023-04-04 13:34:27 - sending background emails
+INFO: 2023-04-04 13:34:27 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 1000.000000, minAfterDebit: -996.000000
+
+INFO: 2023-04-04 13:34:27 - computeAmountToCharge percentage = 9.960000, rounded = 10.000000
+INFO: 2023-04-04 13:34:27 - computeAmountToCharge debit = 9.960000
+INFO: 2023-04-04 13:34:27 - computeAmountToCharge result: 9960.000000
+
+INFO: 2023-04-04 13:34:52 - sending background emails
+INFO: 2023-04-04 13:34:52 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 100.000000, minAfterDebit: -96.000000
+
+INFO: 2023-04-04 13:34:52 - computeAmountToCharge percentage = 0.960000, rounded = 1.000000
+INFO: 2023-04-04 13:34:52 - computeAmountToCharge debit = 0.960000
+INFO: 2023-04-04 13:34:52 - computeAmountToCharge result: 960.000000
+
+INFO: 2023-04-04 13:35:04 - sending background emails
+INFO: 2023-04-04 13:35:04 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 1000.000000, minAfterDebit: -996.000000
+
+INFO: 2023-04-04 13:35:04 - computeAmountToCharge percentage = 9.960000, rounded = 10.000000
+INFO: 2023-04-04 13:35:04 - computeAmountToCharge debit = 9.960000
+INFO: 2023-04-04 13:35:04 - computeAmountToCharge result: 9960.000000
+
+INFO: 2023-04-04 13:39:42 - sending background emails
+INFO: 2023-04-04 13:39:42 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 1000.000000, minAfterDebit: -996.000000
+
+INFO: 2023-04-04 13:39:42 - computeAmountToCharge percentage = .996, rounded = 1.000000
+INFO: 2023-04-04 13:39:42 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:39:42 - computeAmountToCharge result: 1000.000000
+
+INFO: 2023-04-04 13:40:03 - sending background emails
+INFO: 2023-04-04 13:40:03 - computeAmountToCharge full: 1000.000000, used minutes 4.000000, minutes 100.000000, minAfterDebit: -96.000000
+
+INFO: 2023-04-04 13:40:03 - computeAmountToCharge percentage = .96, rounded = 1.000000
+INFO: 2023-04-04 13:40:03 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:40:03 - computeAmountToCharge result: 1000.000000
+
+INFO: 2023-04-04 13:40:20 - sending background emails
+INFO: 2023-04-04 13:40:20 - computeAmountToCharge full: 1000.000000, used minutes 100.000000, minutes 100.000000, minAfterDebit: 0.000000
+
+INFO: 2023-04-04 13:40:20 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 13:40:33 - sending background emails
+INFO: 2023-04-04 13:40:33 - computeAmountToCharge full: 1000.000000, used minutes 99.000000, minutes 100.000000, minAfterDebit: -1.000000
+
+INFO: 2023-04-04 13:40:33 - computeAmountToCharge percentage = .1, rounded = 1.000000
+INFO: 2023-04-04 13:40:33 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:40:33 - computeAmountToCharge result: 1000.000000
+
+INFO: 2023-04-04 13:40:59 - sending background emails
+INFO: 2023-04-04 13:40:59 - computeAmountToCharge full: 1000.000000, used minutes 100.000000, minutes 100.000000, minAfterDebit: 0.000000
+
+INFO: 2023-04-04 13:40:59 - computeAmountToCharge result: 0.000000
+
+INFO: 2023-04-04 13:41:12 - sending background emails
+INFO: 2023-04-04 13:41:12 - computeAmountToCharge full: 1000.000000, used minutes 50.000000, minutes 100.000000, minAfterDebit: -50.000000
+
+INFO: 2023-04-04 13:41:12 - computeAmountToCharge percentage = .50, rounded = 1.000000
+INFO: 2023-04-04 13:41:12 - computeAmountToCharge debit = 1.000000
+INFO: 2023-04-04 13:41:12 - computeAmountToCharge result: 1000.000000
+
+INFO: 2023-04-04 13:43:44 - sending background emails
+INFO: 2023-04-04 13:43:44 - computeAmountToCharge full: 1000.000000, used minutes 50.000000, minutes 100.000000, minAfterDebit: -50.000000
+
+INFO: 2023-04-04 13:43:44 - computeAmountToCharge percentage = 0.500000, rounded = 1.000000
+INFO: 2023-04-04 13:43:44 - computeAmountToCharge debit = 0.500000
+INFO: 2023-04-04 13:43:44 - computeAmountToCharge result: 500.000000
+
+INFO: 2023-04-04 13:44:03 - sending background emails
+INFO: 2023-04-04 13:44:03 - computeAmountToCharge full: 100.000000, used minutes 50.000000, minutes 100.000000, minAfterDebit: -50.000000
+
+INFO: 2023-04-04 13:44:03 - computeAmountToCharge percentage = 0.500000, rounded = 1.000000
+INFO: 2023-04-04 13:44:03 - computeAmountToCharge debit = 0.500000
+INFO: 2023-04-04 13:44:03 - computeAmountToCharge result: 50.000000
+
+INFO: 2023-04-04 13:44:12 - sending background emails
+INFO: 2023-04-04 13:44:12 - computeAmountToCharge full: 30000000.000000, used minutes 50.000000, minutes 100.000000, minAfterDebit: -50.000000
+
+INFO: 2023-04-04 13:44:12 - computeAmountToCharge percentage = 0.500000, rounded = 1.000000
+INFO: 2023-04-04 13:44:12 - computeAmountToCharge debit = 0.500000
+INFO: 2023-04-04 13:44:12 - computeAmountToCharge result: 15000000.000000
+
+INFO: 2023-04-04 13:44:24 - sending background emails
+INFO: 2023-04-04 13:44:24 - computeAmountToCharge full: 350.000000, used minutes 50.000000, minutes 100.000000, minAfterDebit: -50.000000
+
+INFO: 2023-04-04 13:44:24 - computeAmountToCharge percentage = 0.500000, rounded = 1.000000
+INFO: 2023-04-04 13:44:24 - computeAmountToCharge debit = 0.500000
+INFO: 2023-04-04 13:44:24 - computeAmountToCharge result: 175.000000
+
+INFO: 2023-04-04 13:44:33 - sending background emails
+INFO: 2023-04-04 13:44:33 - computeAmountToCharge full: 373.000000, used minutes 50.000000, minutes 100.000000, minAfterDebit: -50.000000
+
+INFO: 2023-04-04 13:44:33 - computeAmountToCharge percentage = 0.500000, rounded = 1.000000
+INFO: 2023-04-04 13:44:33 - computeAmountToCharge debit = 0.500000
+INFO: 2023-04-04 13:44:33 - computeAmountToCharge result: 186.500000
+

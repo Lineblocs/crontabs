@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"math"
 	"strconv"
-
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -50,29 +49,30 @@ func chargeCustomer(billingParams *utils.BillingParams, user *helpers.User, work
 	return err
 }
 
-func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, minRemaining float64) (float64, error) {
-	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, monthly allowed: %f, minRemaining: %f\r\n", fullCentsToCharge, monthlyAllowed, minRemaining))
+func computeAmountToCharge(fullCentsToCharge float64, usedMinutes float64, minutes float64) (float64, error) {
+	minAfterDebit := usedMinutes - minutes
+	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, usedMinutes, minutes, minAfterDebit))
 	//when total goes below 0, only charge the amount that went below 0
-	if monthlyAllowed > 0 && minRemaining < 0 {
-		percentOfDebit := 1.0
-		minutesToBill := math.Abs(minRemaining)
-
-		totalMinBilled := float64(monthlyAllowed) + minutesToBill
-		percentage := totalMinBilled / minutesToBill
-		percentOfDebit, err := strconv.ParseFloat(".%d", int(math.Round(percentage)))
+	// ensure usedMinutes < minutes
+	if usedMinutes > 0 && minAfterDebit < 0 && usedMinutes <= minutes {
+		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - usedMinutes), 'f', -1, 64)), 8)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error using ParseFloat on .%f\r\n", percentage))
-			helpers.Log(logrus.ErrorLevel, err.Error())
+			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
 			return 0, err
 		}
-
-		centsToCharge := math.Ceil(float64(fullCentsToCharge) * percentOfDebit)
+		
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge percentage = %f, rounded = %f", percentOfDebit, math.Round(percentOfDebit)))
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge debit = %f", percentOfDebit))
+		centsToCharge := math.Abs( float64(fullCentsToCharge) * percentOfDebit )
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", centsToCharge))
-		return centsToCharge, nil
-	} else if monthlyAllowed <= 0 {
+		return math.Max(1,centsToCharge), nil
+	} else if usedMinutes >= minutes { // user has enough balance, no need to charge
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
+		return 0, nil
+	} else if usedMinutes <= 0 {
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
 		return fullCentsToCharge, nil
-	} else if monthlyAllowed > 0 && minRemaining >= 0 {
+	} else if usedMinutes > 0 && minAfterDebit >= 0 {
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 		return 0, nil
 	}
@@ -235,8 +235,7 @@ func MonthlyBilling() error {
 				duration := call.DurationNumber
 				helpers.Log(logrus.InfoLevel, fmt.Sprintf("call duration is %d\r\n", duration))
 				minutes := float64(duration / 60)
-				minRemaining := usedMonthlyMinutes - minutes
-				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, float64(minRemaining))
+				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, minutes)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
@@ -269,9 +268,8 @@ func MonthlyBilling() error {
 		var createdAt time.Time
 		for results3.Next() {
 			results3.Scan(&recId, &size, &createdAt)
-			minRemaining := usedMonthlyRecordings - size
 			cents := math.Round(baseCosts.RecordingsPerByte * float64(size))
-			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, minRemaining)
+			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, size)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -291,9 +289,9 @@ func MonthlyBilling() error {
 		var faxId int
 		for results4.Next() {
 			results4.Scan(&faxId, &createdAt)
-			minRemaining := float64(usedMonthlyFax - 1)
+			totalFax := float64( plan.Fax )
 			centsForFax := baseCosts.FaxPerUsed
-			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), minRemaining)
+			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), totalFax)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
