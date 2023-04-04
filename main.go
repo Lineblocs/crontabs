@@ -44,7 +44,7 @@ func main() {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	case "remove_logs":
-		helpers.Log(logrus.InfoLevel, "removing old logs"0
+		helpers.Log(logrus.InfoLevel, "removing old logs")
 		err = cmd.RemoveLogs()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, err.Error())
