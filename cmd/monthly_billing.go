@@ -49,13 +49,13 @@ func chargeCustomer(billingParams *utils.BillingParams, user *helpers.User, work
 	return err
 }
 
-func computeAmountToCharge(fullCentsToCharge float64, usedMinutes float64, minutes float64) (float64, error) {
-	minAfterDebit := usedMinutes - minutes
-	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, usedMinutes, minutes, minAfterDebit))
+func computeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minutes float64) (float64, error) {
+	minAfterDebit := availMinutes - minutes
+	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
 	//when total goes below 0, only charge the amount that went below 0
-	// ensure usedMinutes < minutes
-	if usedMinutes > 0 && minAfterDebit < 0 && usedMinutes <= minutes {
-		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - usedMinutes), 'f', -1, 64)), 8)
+	// ensure availMinutes < minutes
+	if availMinutes > 0 && minAfterDebit < 0 && availMinutes <= minutes {
+		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - availMinutes), 'f', -1, 64)), 8)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
 			return 0, err
@@ -66,10 +66,10 @@ func computeAmountToCharge(fullCentsToCharge float64, usedMinutes float64, minut
 		centsToCharge := math.Abs( float64(fullCentsToCharge) * percentOfDebit )
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", centsToCharge))
 		return math.Max(1,centsToCharge), nil
-	} else if usedMinutes >= minutes { // user has enough balance, no need to charge
+	} else if availMinutes >= minutes { // user has enough balance, no need to charge
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 		return 0, nil
-	} else if usedMinutes <= 0 {
+	} else if availMinutes <= 0 {
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
 		return fullCentsToCharge, nil
 	}
