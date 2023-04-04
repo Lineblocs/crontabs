@@ -19,6 +19,37 @@ import (
 	utils "lineblocs.com/crontabs/utils"
 )
 
+
+func chargeCustomer(billingParams *utils.BillingParams, user *helpers.User, workspace *helpers.Workspace, cents int, invoiceDesc string) (error) {
+	var hndl billing.BillingHandler
+	retryAttempts, err := strconv.Atoi(billingParams.Data["retry_attempts"])
+	if err != nil {
+		//retry attempts issue
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("variable retryAttempts is setup incorrectly. Please ensure that it is set to an integer. retryAttempts=%s setting value to 0", billingParams.Data["retry_attempts"]))
+		retryAttempts = 0
+	}
+
+	switch billingParams.Provider {
+	case "stripe":
+		key := billingParams.Data["stripe_key"]
+		hndl = billing.NewStripeBillingHandler(key, retryAttempts)
+		err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
+		}
+	case "braintree":
+		key := billingParams.Data["braintree_api_key"]
+		hndl = billing.NewBraintreeBillingHandler(key, retryAttempts)
+		err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
+			helpers.Log(logrus.ErrorLevel, err.Error())
+		}
+	}
+	return err
+}
+
 func computeAmountToCharge(fullCentsToCharge float64, monthlyAllowed float64, minRemaining float64) (float64, error) {
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, monthly allowed: %f, minRemaining: %f\r\n", fullCentsToCharge, monthlyAllowed, minRemaining))
 	//when total goes below 0, only charge the amount that went below 0
@@ -319,7 +350,7 @@ func MonthlyBilling() error {
 
 				continue
 			}
-			if charge == totalCosts { //user has enough credits
+			if remainingBalance >= totalCosts { //user has enough credits
 				helpers.Log(logrus.InfoLevel, "User has enough credits. Charging balance\r\n")
 				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
@@ -333,7 +364,7 @@ func MonthlyBilling() error {
 					continue
 				}
 			} else {
-				helpers.Log(logrus.InfoLevel, "User does not have enough credits. Charging balance as much as possible\r\n")
+				helpers.Log(logrus.InfoLevel, "User does not have enough credits. Charging any payment sources\r\n")
 				// update debit to reflect exactly how much we can charge
 				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
 				if err != nil {
@@ -351,34 +382,24 @@ func MonthlyBilling() error {
 
 				cents := int(math.Ceil(charge))
 
-				var hndl billing.BillingHandler
-				retryAttempts, err := strconv.Atoi(billingParams.Data["retry_attempts"])
+				err = chargeCustomer(billingParams, user, workspace, cents, invoiceDesc)
 				if err != nil {
-					//retry attempts issue
-					helpers.Log(logrus.InfoLevel, fmt.Sprintf("variable retryAttempts is setup incorrectly. Please ensure that it is set to an integer. retryAttempts=%s setting value to 0", billingParams.Data["retry_attempts"]))
-					retryAttempts = 0
-				}
-				switch billingParams.Provider {
-				case "stripe":
-					key := billingParams.Data["stripe_key"]
-					hndl = billing.NewStripeBillingHandler(key, retryAttempts)
-					err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+					// could not charge card.
+					// update invoice record and mark as outstanding
+					stmt, err = db.Prepare("UPDATE users_invoices SET source = 'CARD', status = 'INCOMPLETE' WHERE id = ?")
 					if err != nil {
-						helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
+						helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
+						continue
+					}
+					_, err = stmt.Exec(invoiceId)
+					if err != nil {
+						helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 						helpers.Log(logrus.ErrorLevel, err.Error())
 						continue
 					}
-				case "braintree":
-					key := billingParams.Data["braintree_api_key"]
-					hndl = billing.NewBraintreeBillingHandler(key, retryAttempts)
-					err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
-					if err != nil {
-						helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
-						helpers.Log(logrus.ErrorLevel, err.Error())
-						continue
-					}
+					continue
 				}
-				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'complete', source ='CREDITS', cents_collected = ? WHERE id = ?")
+				stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
@@ -391,17 +412,15 @@ func MonthlyBilling() error {
 				}
 
 			}
-			continue
-
 		} else {
 			// regular membership charge. only try to charge a card
 			helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
 			cents := int(math.Ceil(totalCosts))
-			err = helpers.ChargeCustomer(user, workspace, cents, invoiceDesc)
+			err := chargeCustomer(billingParams, user, workspace, cents, invoiceDesc)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
-				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', cents_collected = 0.0 WHERE id = ?")
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', cents_collected = 0.0 WHERE id = ?")
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
@@ -412,7 +431,7 @@ func MonthlyBilling() error {
 					helpers.Log(logrus.ErrorLevel, err.Error())
 					continue
 				}
-
+				// TODO send email when any biliing attempts fail
 				continue
 			}
 			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
