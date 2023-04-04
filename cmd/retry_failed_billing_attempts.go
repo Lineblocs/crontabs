@@ -50,14 +50,14 @@ func RetryFailedBillingAttempts() error {
 		// try to charge the user again.
 		invoiceDesc:="Invoice for service"
 		err = utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
+		currentTime := time.Now()
 		if err != nil { // failed again
 			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', last_attempted = ? WHERE id = ?")
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 				continue
 			}
-			lastAttempted:=""
-			_, err = stmt.Exec(lastAttempted, invoiceId)
+			_, err = stmt.Exec(currentTime, invoiceId)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error updating invoice....\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -65,7 +65,6 @@ func RetryFailedBillingAttempts() error {
 			}
 			continue
 		}
-		currentTime := time.Now()
 		// mark as paid
 		stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ?, last_attempted = ?, num_attempts = num_attempts + 1 WHERE id = ?")
 		if err != nil {
