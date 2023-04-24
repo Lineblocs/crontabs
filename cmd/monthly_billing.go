@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"math"
 	"strconv"
-	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -18,36 +17,6 @@ import (
 	utils "lineblocs.com/crontabs/utils"
 )
 
-
-func computeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minutes float64) (float64, error) {
-	minAfterDebit := availMinutes - minutes
-	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
-	//when total goes below 0, only charge the amount that went below 0
-	// ensure availMinutes < minutes
-	if availMinutes > 0 && minAfterDebit < 0 && availMinutes <= minutes {
-		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - availMinutes), 'f', -1, 64)), 8)
-		if err != nil {
-			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
-			return 0, err
-		}
-		
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge percentage = %f, rounded = %f", percentOfDebit, math.Round(percentOfDebit)))
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge debit = %f", percentOfDebit))
-		centsToCharge := math.Abs( float64(fullCentsToCharge) * percentOfDebit )
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", centsToCharge))
-		return math.Max(1,centsToCharge), nil
-	} else if availMinutes >= minutes { // user has enough balance, no need to charge
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
-		return 0, nil
-	} else if availMinutes <= 0 { // no minutes remaining, charge the full amount
-		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
-		return fullCentsToCharge, nil
-	}
-
-	// this should not happen
-	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
-	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
-}
 
 // cron tab to remove unset password users
 func MonthlyBilling() error {
@@ -204,7 +173,7 @@ func MonthlyBilling() error {
 				duration := call.DurationNumber
 				helpers.Log(logrus.InfoLevel, fmt.Sprintf("call duration is %d\r\n", duration))
 				minutes := float64(duration / 60)
-				charge, err := computeAmountToCharge(cents, usedMonthlyMinutes, minutes)
+				charge, err := utils.ComputeAmountToCharge(cents, usedMonthlyMinutes, minutes)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
@@ -238,7 +207,7 @@ func MonthlyBilling() error {
 		for results3.Next() {
 			results3.Scan(&recId, &size, &createdAt)
 			cents := math.Round(baseCosts.RecordingsPerByte * float64(size))
-			charge, err := computeAmountToCharge(cents, usedMonthlyRecordings, size)
+			charge, err := utils.ComputeAmountToCharge(cents, usedMonthlyRecordings, size)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -260,7 +229,7 @@ func MonthlyBilling() error {
 			results4.Scan(&faxId, &createdAt)
 			totalFax := float64( plan.Fax )
 			centsForFax := baseCosts.FaxPerUsed
-			charge, err := computeAmountToCharge(centsForFax, float64(usedMonthlyFax), totalFax)
+			charge, err := utils.ComputeAmountToCharge(centsForFax, float64(usedMonthlyFax), totalFax)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -285,7 +254,7 @@ func MonthlyBilling() error {
 			totalCosts))
 
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("Creating invoice for user %d, on workspace %d, plan type %s\r\n", user.Id, workspace.Id, workspace.Plan))
-		stmt, err := db.Prepare("INSERT INTO users_invoices (`cents`, `call_costs`, `recording_costs`, `fax_costs`, `membership_costs`, `number_costs`, `status`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		stmt, err := db.Prepare("INSERT INTO users_invoices (`cents`, `call_costs`, `recording_costs`, `fax_costs`, `membership_costs`, `number_costs`, `status`, `user_id`, `workspace_id`, `created_at`, `updated_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
@@ -310,7 +279,7 @@ func MonthlyBilling() error {
 		if plan.PayAsYouGo {
 			remainingBalance := billingInfo.RemainingBalanceCents
 			minRemaining := remainingBalance - totalCosts
-			charge, err := computeAmountToCharge(totalCosts, remainingBalance, minRemaining)
+			charge, err := utils.ComputeAmountToCharge(totalCosts, remainingBalance, minRemaining)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
