@@ -1,8 +1,0 @@
-INFO: 2023-04-04 13:47:02 - Please provide command
-INFO: 2023-04-04 13:51:27 - running monthly billing routines
-ERROR: 2023-04-04 13:51:30 - dial tcp :3306: connectex: No connection could be made because the target machine actively refused it.
-INFO: 2023-04-04 13:57:26 - running monthly billing routines
-INFO: 2023-04-04 14:25:07 - running monthly billing routines
-INFO: 2023-04-04 14:39:09 - Please provide command
-INFO: 2023-04-04 14:42:29 - Please provide command
-INFO: 2023-04-24 15:19:07 - Please provide command
