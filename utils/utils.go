@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"math"
+	"errors"
 	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -151,3 +153,34 @@ func Config(key string) string {
 	}
 	return os.Getenv(key)
 }
+
+func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minutes float64) (float64, error) {
+	minAfterDebit := availMinutes - minutes
+	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
+	//when total goes below 0, only charge the amount that went below 0
+	// ensure availMinutes < minutes
+	if availMinutes > 0 && minAfterDebit < 0 && availMinutes <= minutes {
+		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - availMinutes), 'f', -1, 64)), 8)
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
+			return 0, err
+		}
+		
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge percentage = %f, rounded = %f", percentOfDebit, math.Round(percentOfDebit)))
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge debit = %f", percentOfDebit))
+		centsToCharge := math.Abs( float64(fullCentsToCharge) * percentOfDebit )
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", centsToCharge))
+		return math.Max(1,centsToCharge), nil
+	} else if availMinutes >= minutes { // user has enough balance, no need to charge
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
+		return 0, nil
+	} else if availMinutes <= 0 { // no minutes remaining, charge the full amount
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", fullCentsToCharge))
+		return fullCentsToCharge, nil
+	}
+
+	// this should not happen
+	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
+	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
+}
+
