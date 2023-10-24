@@ -193,7 +193,7 @@ func SendBackgroundEmails() error {
 		}
 		args := make(map[string]string)
 		subject := "Free trial is ending"
-		err = utils.DispatchEmail(subject, "free_trial_ending", user, workspace, args)
+		err = utils.DispatchEmail(subject, "free_trial_expiring", user, workspace, args)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
