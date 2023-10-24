@@ -83,7 +83,7 @@ func CheckRowCount(rows *sql.Rows) (int, error) {
 }
 
 func DispatchEmail(emailType string, user *helpers.User, workspace *helpers.Workspace, emailArgs map[string]string) error {
-	url := "http://lineblocs-email/send"
+	url := "http://com/api/sendEmail"
 
 	email := models.Email{User: *user, Workspace: *workspace, EmailType: emailType, Args: emailArgs}
 	b, err := json.Marshal(email)
