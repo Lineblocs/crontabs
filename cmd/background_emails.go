@@ -58,7 +58,8 @@ func SendBackgroundEmails() error {
 		}
 
 		args := make(map[string]string)
-		err = utils.DispatchEmail("inactive-user", user, workspace, args)
+		subject := "Account Inactivity"
+		err = utils.DispatchEmail(subject, "inactive-user", user, workspace, args)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
@@ -147,7 +148,8 @@ func SendBackgroundEmails() error {
 				args["triggerPercent"] = fmt.Sprintf("%f", percentOfTrigger)
 				args["triggerBalance"] = fmt.Sprintf("%d", balance)
 
-				err = utils.DispatchEmail("usage-trigger", user, workspace, args)
+				subject := "Usage Trigger Alert"
+				err = utils.DispatchEmail(subject, "usage-trigger", user, workspace, args)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
@@ -190,7 +192,8 @@ func SendBackgroundEmails() error {
 			continue
 		}
 		args := make(map[string]string)
-		err = utils.DispatchEmail("free-trial-ending", user, workspace, args)
+		subject := "Free trial is ending"
+		err = utils.DispatchEmail(subject, "free-trial-ending", user, workspace, args)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())

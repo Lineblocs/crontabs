@@ -82,10 +82,10 @@ func CheckRowCount(rows *sql.Rows) (int, error) {
 	return count, nil
 }
 
-func DispatchEmail(emailType string, user *helpers.User, workspace *helpers.Workspace, emailArgs map[string]string) error {
+func DispatchEmail(subject string, emailType string, user *helpers.User, workspace *helpers.Workspace, emailArgs map[string]string) error {
 	url := "http://com/api/sendEmail"
-
-	email := models.Email{User: *user, Workspace: *workspace, EmailType: emailType, Args: emailArgs}
+	to := user.Email
+	email := models.Email{User: *user, Workspace: *workspace, Subject: subject, To: to, EmailType: emailType, Args: emailArgs}
 	b, err := json.Marshal(email)
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, err.Error())
