@@ -12,6 +12,7 @@ import (
 
 	helpers "github.com/Lineblocs/go-helpers"
 	utils "lineblocs.com/crontabs/utils"
+	models "lineblocs.com/crontabs/models"
 )
 
 // cron tab to remove unset password users
@@ -37,6 +38,10 @@ func RetryFailedBillingAttempts() error {
 	var cents int 
 	for results.Next() {
 		err = results.Scan(&invoiceId, &workspaceId, &userId, &cents)
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, "error scanning for db result "+err.Error())
+			continue
+		}
 		workspace, err := helpers.GetWorkspaceFromDB(workspaceId)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(workspaceId)+"\r\n")
@@ -49,7 +54,11 @@ func RetryFailedBillingAttempts() error {
 		}
 		// try to charge the user again.
 		invoiceDesc:="Invoice for service"
-		err = utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
+		invoice := models.UserInvoice{
+			Id: int(invoiceId),
+			Cents: cents,
+			InvoiceDesc: invoiceDesc }
+		err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 		currentTime := time.Now()
 		if err != nil { // failed again
 			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', last_attempted = ? WHERE id = ?")
@@ -65,13 +74,20 @@ func RetryFailedBillingAttempts() error {
 			}
 			continue
 		}
+		confNumber, err := utils.CreateInvoiceConfirmationNumber()
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+			continue
+		}
+
 		// mark as paid
-		stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ?, last_attempted = ?, num_attempts = num_attempts + 1 WHERE id = ?")
+		stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ?, last_attempted = ?, num_attempts = num_attempts + 1, confirmation_number = ? WHERE id = ?")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue
 		}
-		_, err = stmt.Exec(cents, currentTime, invoiceId)
+
+		_, err = stmt.Exec(cents, currentTime, confNumber, invoiceId)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())

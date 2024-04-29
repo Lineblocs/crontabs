@@ -40,7 +40,7 @@ func GetDBConnection() (*sql.DB, error) {
 	return db, nil
 }
 
-func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.User, workspace *helpers.Workspace, cents int, invoiceDesc string) (error) {
+func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) (error) {
 	var hndl billing.BillingHandler
 	retryAttempts, err := strconv.Atoi(billingParams.Data["retry_attempts"])
 	if err != nil {
@@ -53,7 +53,7 @@ func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.
 	case "stripe":
 		key := billingParams.Data["stripe_key"]
 		hndl = billing.NewStripeBillingHandler(dbConn, key, retryAttempts)
-		err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+		err = hndl.ChargeCustomer(user, workspace, invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
@@ -61,12 +61,15 @@ func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.
 	case "braintree":
 		key := billingParams.Data["braintree_api_key"]
 		hndl = billing.NewBraintreeBillingHandler(dbConn, key, retryAttempts)
-		err = hndl.ChargeCustomer(user, workspace, cents, invoiceDesc)
+		err = hndl.ChargeCustomer(user, workspace, invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
 	}
+
+
+
 	return err
 }
 
@@ -184,3 +187,7 @@ func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
 }
 
+
+func CreateInvoiceConfirmationNumber() (string, error) {
+	return "123", nil
+}

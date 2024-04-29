@@ -6,6 +6,7 @@ import (
 	"errors"
 	"database/sql"
 	helpers "github.com/Lineblocs/go-helpers"
+	models "lineblocs.com/crontabs/models"
 )
 
 type BraintreeBillingHandler struct {
@@ -24,7 +25,7 @@ func NewBraintreeBillingHandler(dbConn *sql.DB, BraintreeKey string, retryAttemp
 	return &item
 }
 
-func (hndl *BraintreeBillingHandler) ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, cents int, desc string) error {
+func (hndl *BraintreeBillingHandler) ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) error {
 	//_ := hndl.DbConn
 	// todo: implement handler
 	return errors.New("not implemented yet")

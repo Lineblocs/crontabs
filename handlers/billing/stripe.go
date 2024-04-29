@@ -4,8 +4,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stripe/stripe-go/v71"
 	"github.com/stripe/stripe-go/v71/charge"
+	models "lineblocs.com/crontabs/models"
 
 	"database/sql"
+
 	helpers "github.com/Lineblocs/go-helpers"
 )
 
@@ -25,7 +27,7 @@ func NewStripeBillingHandler(dbConn *sql.DB, stripeKey string, retryAttempts int
 	return &item
 }
 
-func (hndl *StripeBillingHandler) ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, cents int, desc string) error {
+func (hndl *StripeBillingHandler) ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) error {
 	db := hndl.DbConn
 	stripe.Key = hndl.StripeKey
 
@@ -34,10 +36,14 @@ func (hndl *StripeBillingHandler) ChargeCustomer(user *helpers.User, workspace *
 	row := db.QueryRow(`SELECT id, stripe_id FROM users_cards WHERE workspace_id=? AND primary =1`, workspace.Id)
 
 	err := row.Scan(&id, &tokenId)
+	if err != nil {
+		return err
+	}
+
 	// `source` is obtained with Stripe.js; see https://stripe.com/docs/payments/accept-a-payment-charges#web-create-token
-	params := &stripe.ChargeParams{Amount: stripe.Int64(int64(cents)),
+	params := &stripe.ChargeParams{Amount: stripe.Int64(int64(invoice.Cents)),
 		Currency:    stripe.String(string(stripe.CurrencyUSD)),
-		Description: stripe.String(desc),
+		Description: stripe.String(invoice.InvoiceDesc),
 		Source:      &stripe.SourceParams{Token: stripe.String(tokenId)}}
 	_, err = charge.New(params)
 	if err != nil {

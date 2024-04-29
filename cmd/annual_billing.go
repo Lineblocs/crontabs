@@ -13,6 +13,7 @@ import (
 
 	helpers "github.com/Lineblocs/go-helpers"
 	utils "lineblocs.com/crontabs/utils"
+	models "lineblocs.com/crontabs/models"
 )
 
 
@@ -115,7 +116,11 @@ func AnnualBilling() error {
 		}
 
 		helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
-		err = utils.ChargeCustomer(db, billingParams, user, workspace, totalCostsCents, invoiceDesc)
+		invoice := models.UserInvoice{
+			Id: int(invoiceId),
+			Cents: totalCostsCents,
+			InvoiceDesc: invoiceDesc }
+		err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
@@ -133,12 +138,18 @@ func AnnualBilling() error {
 			// TODO send email when any biliing attempts fail
 			continue
 		}
-		stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
+
+		confNumber, err := utils.CreateInvoiceConfirmationNumber()
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+			continue
+		}
+		stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue
 		}
-		_, err = stmt.Exec(totalCostsCents, invoiceId)
+		_, err = stmt.Exec(totalCostsCents, confNumber, invoiceId)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())

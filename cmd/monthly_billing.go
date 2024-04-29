@@ -15,6 +15,7 @@ import (
 
 	helpers "github.com/Lineblocs/go-helpers"
 	utils "lineblocs.com/crontabs/utils"
+	models "lineblocs.com/crontabs/models"
 )
 
 
@@ -288,12 +289,19 @@ func MonthlyBilling() error {
 			}
 			if remainingBalance >= totalCosts { //user has enough credits
 				helpers.Log(logrus.InfoLevel, "User has enough credits. Charging balance\r\n")
-				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ? WHERE id = ?")
+
+				confNumber, err := utils.CreateInvoiceConfirmationNumber()
+				if err != nil {
+					helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+					continue
+				}
+
+				stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CREDITS', cents_collected = ?, confirmation_number = ? WHERE id = ?")
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 					continue
 				}
-				_, err = stmt.Exec(totalCosts, invoiceId)
+				_, err = stmt.Exec(totalCosts, confNumber, invoiceId)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
@@ -317,8 +325,11 @@ func MonthlyBilling() error {
 				helpers.Log(logrus.InfoLevel, "Charging remainder with card..\r\n")
 
 				cents := int(math.Ceil(charge))
-
-				err = utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
+				invoice := models.UserInvoice{
+					Id: int(invoiceId),
+					Cents: cents,
+					InvoiceDesc: invoiceDesc }
+				err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 				if err != nil {
 					// could not charge card.
 					// update invoice record and mark as outstanding
@@ -352,7 +363,11 @@ func MonthlyBilling() error {
 			// regular membership charge. only try to charge a card
 			helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
 			cents := int(math.Ceil(totalCosts))
-			err := utils.ChargeCustomer(db, billingParams, user, workspace, cents, invoiceDesc)
+			invoice := models.UserInvoice{
+				Id: int(invoiceId),
+				Cents: cents,
+				InvoiceDesc: invoiceDesc }
+			err := utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
@@ -370,12 +385,19 @@ func MonthlyBilling() error {
 				// TODO send email when any biliing attempts fail
 				continue
 			}
-			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ? WHERE id = ?")
+
+			confNumber, err := utils.CreateInvoiceConfirmationNumber()
+			if err != nil {
+				helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+				continue
+			}
+
+			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?")
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 				continue
 			}
-			_, err = stmt.Exec(totalCosts, invoiceId)
+			_, err = stmt.Exec(totalCosts, confNumber, invoiceId)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())

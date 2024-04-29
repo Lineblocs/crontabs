@@ -4,10 +4,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	helpers "github.com/Lineblocs/go-helpers"
+	models "lineblocs.com/crontabs/models"
 )
 
 type BillingHandler interface {
-	ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, cents int, desc string) error
+	ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) error
 }
 
 type Billing struct {
