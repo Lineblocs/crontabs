@@ -18,6 +18,70 @@ import (
 	utils "lineblocs.com/crontabs/utils"
 )
 
+func notifyForCardExpiry(db *sql.DB) (error) {
+	now := time.Now()
+	year, monthStr, _ := now.Date()
+	month := int(monthStr)
+
+	// change this to a JOIN
+	results, err := db.Query("SELECT user_cards.exp_month, users_cards.exp_year, users_cards.user_id, users_cards.workspace_id, users_cards.last_4 FROM users_cards")
+	if err != nil {
+		helpers.Log(logrus.ErrorLevel, "error getting workspaces..\r\n")
+		helpers.Log(logrus.ErrorLevel, err.Error())
+		return err
+	}
+
+	defer results.Close()
+	var expMonth int
+	var expYear int
+	var userId int
+	var workspaceId int
+	var last4 string
+
+
+	for results.Next() {
+		args := make(map[string]string)
+
+		subject := "Card expiring soon"
+
+		results.Scan(&expMonth, &expYear, &userId, last4)
+		currentLocation := now.Location()
+
+		firstOfMonth := time.Date(year, monthStr, 1, 0, 0, 0, 0, currentLocation)
+		lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
+		_, _, lastDayStr := lastOfMonth.Date()
+		lastDay := int(lastDayStr)
+
+		daysUntilExpiry := strconv.Itoa(lastDay + 1)
+
+		args["ending_digits"] = last4
+		args["days"] = daysUntilExpiry
+
+		if expYear == year && (expMonth - month) == 1{ // 1 month until credit card expiry
+			user, err := helpers.GetUserFromDB(userId)
+			if err != nil {
+				helpers.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
+				continue
+			}
+
+			workspace, err := helpers.GetWorkspaceFromDB(workspaceId)
+			if err != nil {
+				helpers.Log(logrus.ErrorLevel, "could not get workspace from DB\r\n")
+				continue
+			}
+
+			err = utils.DispatchEmail(subject, "card_expiring", user, workspace, args)
+			if err != nil {
+				helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
+				helpers.Log(logrus.ErrorLevel, err.Error())
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
 // cron tab to email users to tell them that their free trial will be ending soon
 func SendBackgroundEmails() error {
 	db, err := utils.GetDBConnection()
@@ -211,5 +275,11 @@ func SendBackgroundEmails() error {
 			continue
 		}
 	}
+
+	err = notifyForCardExpiry(db)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
