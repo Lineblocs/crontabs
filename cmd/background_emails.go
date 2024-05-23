@@ -82,6 +82,64 @@ func notifyForCardExpiry(db *sql.DB) (error) {
 	return nil
 }
 
+func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
+	now := time.Now()
+	numDaysToWait := 7
+
+	results, err := db.Query("SELECT workspaces.id, workspaces.name, workspaces.plan, workspaces.created_at, workspaces.sent_satisfaction_survey, users.username, users.email, users.first_name, users.last_name, users.id FROM workspaces JOIN users ON users.id = workspaces.creator_id")
+	if err != nil {
+		helpers.Log(logrus.ErrorLevel, "error getting workspaces..\r\n")
+		helpers.Log(logrus.ErrorLevel, err.Error())
+		return err
+	}
+
+	defer results.Close()
+	var workspaceName string
+	var workspaceId int
+	var createdDate time.Time
+	var workspacePlan string
+	var sentSurvey int
+	var username string
+	var userEmail string
+	var fname string
+	var lname string
+	var userId int
+
+	for results.Next() {
+		args := make(map[string]string)
+
+		subject := "Customer satisfaction survey"
+
+		results.Scan(&workspaceId, &workspaceName, &workspacePlan, &createdDate, &sentSurvey, &username, &userEmail, &fname, &lname, &userId)
+
+		user := helpers.CreateUser(userId, username, fname, lname, userEmail)
+		workspace := helpers.CreateWorkspace(workspaceId, workspaceName, userId, nil, workspacePlan, nil, nil)
+
+		diff := now.Sub(createdDate)
+		daysElapsed := int(diff.Hours()/24) // number of days  
+
+		if daysElapsed >= numDaysToWait && sentSurvey == 0 {
+			err = utils.DispatchEmail(subject, "customer_satisfaction_survey", user, workspace, args)
+
+			// TODO: move this to ensure emails are sent before updating database
+			_, err := db.Query("UPDATE workspaces SET sent_satisfaction_survey = 1 WHERE id = ?", workspaceId)
+			if err != nil {
+				helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error updating database. error: 5s\r\n", err.Error()));
+				helpers.Log(logrus.ErrorLevel, err.Error())
+				continue
+			}
+
+			if err != nil {
+				helpers.Log(logrus.ErrorLevel, "could not send email\r\n")
+				helpers.Log(logrus.ErrorLevel, err.Error())
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
 // cron tab to email users to tell them that their free trial will be ending soon
 func SendBackgroundEmails() error {
 	db, err := utils.GetDBConnection()
