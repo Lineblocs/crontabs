@@ -86,7 +86,7 @@ func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
 	now := time.Now()
 	numDaysToWait := 7
 
-	results, err := db.Query("SELECT workspaces.id, workspaces.name, workspaces.plan, workspaces.created_at, workspaces.sent_satisfaction_survey, users.username, users.email, users.first_name, users.last_name, users.id FROM workspaces JOIN users ON users.id = workspaces.creator_id")
+	results, err := db.Query("SELECT workspaces.id, workspaces.name, workspaces.plan, workspaces.created_at, workspaces.sent_satisfaction_survey, users.username, users.email, users.first_name, users.last_name, users.stripe_id, users.id FROM workspaces JOIN users ON users.id = workspaces.creator_id")
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, "error getting workspaces..\r\n")
 		helpers.Log(logrus.ErrorLevel, err.Error())
@@ -103,6 +103,7 @@ func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
 	var userEmail string
 	var fname string
 	var lname string
+	var stripeId string
 	var userId int
 
 	for results.Next() {
@@ -110,9 +111,9 @@ func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
 
 		subject := "Customer satisfaction survey"
 
-		results.Scan(&workspaceId, &workspaceName, &workspacePlan, &createdDate, &sentSurvey, &username, &userEmail, &fname, &lname, &userId)
+		results.Scan(&workspaceId, &workspaceName, &workspacePlan, &createdDate, &sentSurvey, &username, &userEmail, &fname, &lname, &stripeId, &userId)
 
-		user := helpers.CreateUser(userId, username, fname, lname, userEmail)
+		user := helpers.CreateUser(userId, username, fname, lname, userEmail, stripeId)
 		workspace := helpers.CreateWorkspace(workspaceId, workspaceName, userId, nil, workspacePlan, nil, nil)
 
 		diff := now.Sub(createdDate)

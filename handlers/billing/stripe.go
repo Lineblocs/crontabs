@@ -1,9 +1,12 @@
 package billing
 
 import (
+	"fmt"
+	"os"
+
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/stripe/stripe-go/v71"
-	"github.com/stripe/stripe-go/v71/charge"
+	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/paymentintent"
 	models "lineblocs.com/crontabs/models"
 
 	"database/sql"
@@ -32,22 +35,37 @@ func (hndl *StripeBillingHandler) ChargeCustomer(user *helpers.User, workspace *
 	stripe.Key = hndl.StripeKey
 
 	var id int
-	var tokenId string
-	row := db.QueryRow(`SELECT id, stripe_id FROM users_cards WHERE workspace_id=? AND primary =1`, workspace.Id)
+	var paymentMethodId string
+	row := db.QueryRow(`SELECT id, stripe_payment_method_id FROM users_cards WHERE workspace_id=? AND primary =1`, workspace.Id)
 
-	err := row.Scan(&id, &tokenId)
+	err := row.Scan(&id, &paymentMethodId)
 	if err != nil {
 		return err
 	}
 
-	// `source` is obtained with Stripe.js; see https://stripe.com/docs/payments/accept-a-payment-charges#web-create-token
-	params := &stripe.ChargeParams{Amount: stripe.Int64(int64(invoice.Cents)),
+	domain := os.Getenv("DEPLOYMENT_DOMAIN")
+	redirectUrl := fmt.Sprintf("https://app.%s/confirm-payment-intent", domain)
+	descriptor := fmt.Sprintf("%s invoice", domain)
+	customerId := user.StripeId
+    // Define the parameters for creating a PaymentIntent
+    params := &stripe.PaymentIntentParams{
+		Amount: stripe.Int64(int64(invoice.Cents)),
 		Currency:    stripe.String(string(stripe.CurrencyUSD)),
-		Description: stripe.String(invoice.InvoiceDesc),
-		Source:      &stripe.SourceParams{Token: stripe.String(tokenId)}}
-	_, err = charge.New(params)
-	if err != nil {
+        AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{Enabled: stripe.Bool(true)},
+        Customer:                stripe.String(customerId),
+        PaymentMethod:           stripe.String(paymentMethodId), // Replace with the payment method ID
+        ReturnURL:               stripe.String(redirectUrl),    // Replace with the redirect URL
+        OffSession:              stripe.Bool(true),
+        Confirm:                 stripe.Bool(true),
+        StatementDescriptor:     stripe.String(descriptor),    // Replace with your statement descriptor
+    }
+
+    // Create the PaymentIntent
+	_, err = paymentintent.New(params)
+
+    if err != nil {
 		return err
-	}
+    }
+
 	return nil
 }
