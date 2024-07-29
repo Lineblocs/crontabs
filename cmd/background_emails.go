@@ -122,9 +122,9 @@ func sendCustomerSatisfactionSurvey(db *sql.DB) error {
 			err = utils.DispatchEmail(subject, "customer_satisfaction_survey", user, workspace, args)
 
 			// TODO: move this to ensure emails are sent before updating database
-			_, err := db.Query("UPDATE workspaces SET sent_satisfaction_survey = 1 WHERE id = ?", workspaceId)
-			if err != nil {
-				helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error updating database. error: 5s\r\n", err.Error()))
+			_, errdb := db.Query("UPDATE workspaces SET sent_satisfaction_survey = 1 WHERE id = ?", workspaceId)
+			if errdb != nil {
+				helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error %s updating database. error: 5s\r\n", err.Error()))
 				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
@@ -240,8 +240,9 @@ func SendBackgroundEmails() error {
 			continue
 		}
 
-		results2, err := db.Query("SELECT id, percentage from usage_triggers where workspace_id = ?", workspace.Id)
+		results2, _ := db.Query("SELECT id, percentage from usage_triggers where workspace_id = ?", workspace.Id)
 		defer results2.Close()
+
 		for results2.Next() {
 			results2.Scan(&triggerId, &percentage)
 			var triggerUsageId int
