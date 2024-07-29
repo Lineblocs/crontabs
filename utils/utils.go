@@ -25,8 +25,8 @@ import (
 var db *sql.DB
 
 type BillingParams struct {
-	Provider string
 	Data     map[string]string
+	Provider string
 }
 
 func GetDBConnection() (*sql.DB, error) {

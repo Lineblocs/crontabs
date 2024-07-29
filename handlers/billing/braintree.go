@@ -11,10 +11,10 @@ import (
 )
 
 type BraintreeBillingHandler struct {
+	DbConn       *sql.DB
+	BraintreeKey string
 	Billing
 	RetryAttempts int
-	BraintreeKey  string
-	DbConn        *sql.DB
 }
 
 func NewBraintreeBillingHandler(dbConn *sql.DB, BraintreeKey string, retryAttempts int) *BraintreeBillingHandler {

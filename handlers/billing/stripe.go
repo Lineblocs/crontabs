@@ -15,10 +15,10 @@ import (
 )
 
 type StripeBillingHandler struct {
+	DbConn    *sql.DB
+	StripeKey string
 	Billing
 	RetryAttempts int
-	StripeKey     string
-	DbConn        *sql.DB
 }
 
 func NewStripeBillingHandler(dbConn *sql.DB, stripeKey string, retryAttempts int) *StripeBillingHandler {
