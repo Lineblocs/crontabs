@@ -9,6 +9,7 @@ require (
 	github.com/mailgun/mailgun-go/v4 v4.12.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
+	gotest.tools v2.2.0+incompatible
 )
 
 require (

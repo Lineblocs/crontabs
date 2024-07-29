@@ -5,6 +5,7 @@ import (
 
 	"math"
 	"strconv"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -12,10 +13,9 @@ import (
 	//now "github.com/jinzhu/now"
 
 	helpers "github.com/Lineblocs/go-helpers"
-	utils "lineblocs.com/crontabs/utils"
 	models "lineblocs.com/crontabs/models"
+	utils "lineblocs.com/crontabs/utils"
 )
-
 
 // cron tab to remove unset password users
 func AnnualBilling() error {
@@ -30,6 +30,7 @@ func AnnualBilling() error {
 	if err != nil {
 		return err
 	}
+
 	// get any workspaces that have annual pricing enabled
 	results, err := db.Query("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'")
 	if err != nil {
@@ -37,6 +38,7 @@ func AnnualBilling() error {
 		helpers.Log(logrus.ErrorLevel, err.Error())
 		return err
 	}
+
 	plans, err := helpers.GetServicePlans()
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, "error getting service plans\r\n")
@@ -90,7 +92,7 @@ func AnnualBilling() error {
 			continue
 		}
 
-		membershipCosts := float64( plan.AnnualCostCents ) * float64(userCount)
+		membershipCosts := float64(plan.AnnualCostCents) * float64(userCount)
 		totalCostsCents := int(math.Ceil(membershipCosts))
 		// any regular costs are accured towards monthly billing, no need to charge anything here
 		regularCostsCents := 0
@@ -117,9 +119,9 @@ func AnnualBilling() error {
 
 		helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
 		invoice := models.UserInvoice{
-			Id: int(invoiceId),
-			Cents: totalCostsCents,
-			InvoiceDesc: invoiceDesc }
+			Id:          int(invoiceId),
+			Cents:       totalCostsCents,
+			InvoiceDesc: invoiceDesc}
 		err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
@@ -141,7 +143,7 @@ func AnnualBilling() error {
 
 		confNumber, err := utils.CreateInvoiceConfirmationNumber()
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: "+err.Error())
 			continue
 		}
 		stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?")

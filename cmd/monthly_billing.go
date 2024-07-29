@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"math"
 	"strconv"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -14,10 +15,9 @@ import (
 	//now "github.com/jinzhu/now"
 
 	helpers "github.com/Lineblocs/go-helpers"
-	utils "lineblocs.com/crontabs/utils"
 	models "lineblocs.com/crontabs/models"
+	utils "lineblocs.com/crontabs/utils"
 )
-
 
 // cron tab to remove unset password users
 func MonthlyBilling() error {
@@ -228,7 +228,7 @@ func MonthlyBilling() error {
 		var faxId int
 		for results4.Next() {
 			results4.Scan(&faxId, &createdAt)
-			totalFax := float64( plan.Fax )
+			totalFax := float64(plan.Fax)
 			centsForFax := baseCosts.FaxPerUsed
 			charge, err := utils.ComputeAmountToCharge(centsForFax, float64(usedMonthlyFax), totalFax)
 			if err != nil {
@@ -292,7 +292,7 @@ func MonthlyBilling() error {
 
 				confNumber, err := utils.CreateInvoiceConfirmationNumber()
 				if err != nil {
-					helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+					helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: "+err.Error())
 					continue
 				}
 
@@ -326,9 +326,9 @@ func MonthlyBilling() error {
 
 				cents := int(math.Ceil(charge))
 				invoice := models.UserInvoice{
-					Id: int(invoiceId),
-					Cents: cents,
-					InvoiceDesc: invoiceDesc }
+					Id:          int(invoiceId),
+					Cents:       cents,
+					InvoiceDesc: invoiceDesc}
 				err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 				if err != nil {
 					// could not charge card.
@@ -364,9 +364,9 @@ func MonthlyBilling() error {
 			helpers.Log(logrus.InfoLevel, "Charging recurringly with card..\r\n")
 			cents := int(math.Ceil(totalCosts))
 			invoice := models.UserInvoice{
-				Id: int(invoiceId),
-				Cents: cents,
-				InvoiceDesc: invoiceDesc }
+				Id:          int(invoiceId),
+				Cents:       cents,
+				InvoiceDesc: invoiceDesc}
 			err := utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
@@ -388,7 +388,7 @@ func MonthlyBilling() error {
 
 			confNumber, err := utils.CreateInvoiceConfirmationNumber()
 			if err != nil {
-				helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+				helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: "+err.Error())
 				continue
 			}
 

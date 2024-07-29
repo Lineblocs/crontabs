@@ -18,7 +18,7 @@ import (
 	utils "lineblocs.com/crontabs/utils"
 )
 
-func notifyForCardExpiry(db *sql.DB) (error) {
+func notifyForCardExpiry(db *sql.DB) error {
 	now := time.Now()
 	year, monthStr, _ := now.Date()
 	month := int(monthStr)
@@ -38,7 +38,6 @@ func notifyForCardExpiry(db *sql.DB) (error) {
 	var workspaceId int
 	var last4 string
 
-
 	for results.Next() {
 		args := make(map[string]string)
 
@@ -57,7 +56,7 @@ func notifyForCardExpiry(db *sql.DB) (error) {
 		args["ending_digits"] = last4
 		args["days"] = daysUntilExpiry
 
-		if expYear == year && (expMonth - month) == 1{ // 1 month until credit card expiry
+		if expYear == year && (expMonth-month) == 1 { // 1 month until credit card expiry
 			user, err := helpers.GetUserFromDB(userId)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "could not get user from DB\r\n")
@@ -82,7 +81,7 @@ func notifyForCardExpiry(db *sql.DB) (error) {
 	return nil
 }
 
-func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
+func sendCustomerSatisfactionSurvey(db *sql.DB) error {
 	now := time.Now()
 	numDaysToWait := 7
 
@@ -117,7 +116,7 @@ func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
 		workspace := helpers.CreateWorkspace(workspaceId, workspaceName, userId, nil, workspacePlan, nil, nil)
 
 		diff := now.Sub(createdDate)
-		daysElapsed := int(diff.Hours()/24) // number of days  
+		daysElapsed := int(diff.Hours() / 24) // number of days
 
 		if daysElapsed >= numDaysToWait && sentSurvey == 0 {
 			err = utils.DispatchEmail(subject, "customer_satisfaction_survey", user, workspace, args)
@@ -125,7 +124,7 @@ func sendCustomerSatisfactionSurvey(db *sql.DB) (error) {
 			// TODO: move this to ensure emails are sent before updating database
 			_, err := db.Query("UPDATE workspaces SET sent_satisfaction_survey = 1 WHERE id = ?", workspaceId)
 			if err != nil {
-				helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error updating database. error: 5s\r\n", err.Error()));
+				helpers.Log(logrus.ErrorLevel, fmt.Sprintf("error updating database. error: 5s\r\n", err.Error()))
 				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}

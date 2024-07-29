@@ -4,21 +4,22 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"fmt"
 	"strconv"
 
-	"math"
 	"errors"
+	"math"
+
 	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
-	models "lineblocs.com/crontabs/models"
 	billing "lineblocs.com/crontabs/handlers/billing"
+	models "lineblocs.com/crontabs/models"
 )
 
 var db *sql.DB
@@ -40,7 +41,7 @@ func GetDBConnection() (*sql.DB, error) {
 	return db, nil
 }
 
-func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) (error) {
+func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) error {
 	var hndl billing.BillingHandler
 	retryAttempts, err := strconv.Atoi(billingParams.Data["retry_attempts"])
 	if err != nil {
@@ -68,11 +69,8 @@ func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.
 		}
 	}
 
-
-
 	return err
 }
-
 
 func CheckRowCount(rows *sql.Rows) (int, error) {
 	var count int
@@ -125,7 +123,6 @@ func GetBillingParams() (*BillingParams, error) {
 		return nil, err
 	}
 
-
 	row = conn.QueryRow("SELECT stripe_private_key FROM api_credentials")
 	if err != nil {
 		return nil, err
@@ -163,17 +160,17 @@ func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 	//when total goes below 0, only charge the amount that went below 0
 	// ensure availMinutes < minutes
 	if availMinutes > 0 && minAfterDebit < 0 && availMinutes <= minutes {
-		percentOfDebit, err := strconv.ParseFloat( fmt.Sprintf(".%s", strconv.FormatFloat((minutes - availMinutes), 'f', -1, 64)), 8)
+		percentOfDebit, err := strconv.ParseFloat(fmt.Sprintf(".%s", strconv.FormatFloat((minutes-availMinutes), 'f', -1, 64)), 8)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
 			return 0, err
 		}
-		
+
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge percentage = %f, rounded = %f", percentOfDebit, math.Round(percentOfDebit)))
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge debit = %f", percentOfDebit))
-		centsToCharge := math.Abs( float64(fullCentsToCharge) * percentOfDebit )
+		centsToCharge := math.Abs(float64(fullCentsToCharge) * percentOfDebit)
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", centsToCharge))
-		return math.Max(1,centsToCharge), nil
+		return math.Max(1, centsToCharge), nil
 	} else if availMinutes >= minutes { // user has enough balance, no need to charge
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 		return 0, nil
@@ -186,7 +183,6 @@ func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
 }
-
 
 func CreateInvoiceConfirmationNumber() (string, error) {
 	return "123", nil

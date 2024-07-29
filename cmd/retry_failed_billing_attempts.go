@@ -1,9 +1,9 @@
 package cmd
 
 import (
-
 	"strconv"
 	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
@@ -11,8 +11,8 @@ import (
 	//now "github.com/jinzhu/now"
 
 	helpers "github.com/Lineblocs/go-helpers"
-	utils "lineblocs.com/crontabs/utils"
 	models "lineblocs.com/crontabs/models"
+	utils "lineblocs.com/crontabs/utils"
 )
 
 // cron tab to remove unset password users
@@ -32,10 +32,10 @@ func RetryFailedBillingAttempts() error {
 		return err
 	}
 	defer results.Close()
-	var invoiceId int 
-	var workspaceId int 
-	var userId int 
-	var cents int 
+	var invoiceId int
+	var workspaceId int
+	var userId int
+	var cents int
 	for results.Next() {
 		err = results.Scan(&invoiceId, &workspaceId, &userId, &cents)
 		if err != nil {
@@ -53,11 +53,11 @@ func RetryFailedBillingAttempts() error {
 			continue
 		}
 		// try to charge the user again.
-		invoiceDesc:="Invoice for service"
+		invoiceDesc := "Invoice for service"
 		invoice := models.UserInvoice{
-			Id: int(invoiceId),
-			Cents: cents,
-			InvoiceDesc: invoiceDesc }
+			Id:          int(invoiceId),
+			Cents:       cents,
+			InvoiceDesc: invoiceDesc}
 		err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
 		currentTime := time.Now()
 		if err != nil { // failed again
@@ -76,7 +76,7 @@ func RetryFailedBillingAttempts() error {
 		}
 		confNumber, err := utils.CreateInvoiceConfirmationNumber()
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: " + err.Error())
+			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: "+err.Error())
 			continue
 		}
 
