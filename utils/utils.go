@@ -5,12 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 
-	"errors"
 	"math"
 
 	helpers "github.com/Lineblocs/go-helpers"
@@ -104,7 +103,7 @@ func DispatchEmail(subject string, emailType string, user *helpers.User, workspa
 	defer resp.Body.Close()
 
 	helpers.Log(logrus.InfoLevel, "response Status:"+resp.Status)
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	helpers.Log(logrus.InfoLevel, "response Body:"+string(body))
 	return nil
 }
@@ -124,9 +123,6 @@ func GetBillingParams() (*BillingParams, error) {
 	}
 
 	row = conn.QueryRow("SELECT stripe_private_key FROM api_credentials")
-	if err != nil {
-		return nil, err
-	}
 
 	var stripePrivateKey string
 	err = row.Scan(&stripePrivateKey)
@@ -160,7 +156,7 @@ func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 	//when total goes below 0, only charge the amount that went below 0
 	// ensure availMinutes < minutes
 	if availMinutes > 0 && minAfterDebit < 0 && availMinutes <= minutes {
-		percentOfDebit, err := strconv.ParseFloat(fmt.Sprintf(".%s", strconv.FormatFloat((minutes-availMinutes), 'f', -1, 64)), 8)
+		percentOfDebit, err := strconv.ParseFloat(fmt.Sprintf(".%s", strconv.FormatFloat((minutes-availMinutes), 'f', -1, 64)), 64)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, fmt.Sprintf("computeAmountToCharge could not parse float %s", err.Error()))
 			return 0, err
@@ -181,7 +177,7 @@ func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 
 	// this should not happen
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
-	return 0, errors.New(fmt.Sprintf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f\r\n", fullCentsToCharge, availMinutes, minutes, minAfterDebit))
+	return 0, fmt.Errorf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f", fullCentsToCharge, availMinutes, minutes, minAfterDebit)
 }
 
 func CreateInvoiceConfirmationNumber() (string, error) {
