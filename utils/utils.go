@@ -16,6 +16,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	_ "github.com/mailgun/mailgun-go/v4"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	billing "lineblocs.com/crontabs/handlers/billing"
 	models "lineblocs.com/crontabs/models"
@@ -71,11 +72,13 @@ func ChargeCustomer(dbConn *sql.DB, billingParams *BillingParams, user *helpers.
 	return err
 }
 
-func CheckRowCount(rows *sql.Rows) (int, error) {
+func GetRowCount(rows *sql.Rows) (int, error) {
 	var count int
 	for rows.Next() {
 		err := rows.Scan(&count)
 		if err != nil {
+			errMessage := errors.Wrap(err, "error getting workspace user count")
+			helpers.Log(logrus.ErrorLevel, errMessage.Error())
 			return 0, err
 		}
 	}

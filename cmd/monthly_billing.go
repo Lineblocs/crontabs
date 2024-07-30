@@ -126,7 +126,7 @@ func MonthlyBilling() error {
 		}
 		rows.Close()
 
-		userCount, err := utils.CheckRowCount(rows)
+		userCount, err := utils.GetRowCount(rows)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())

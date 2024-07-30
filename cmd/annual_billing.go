@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"database/sql"
 	"time"
 
 	"math"
@@ -17,22 +18,26 @@ import (
 	utils "lineblocs.com/crontabs/utils"
 )
 
-// cron tab to remove unset password users
-func AnnualBilling() error {
-	var id int
-	var creatorId int
+type AnnualBillingJob struct {
+	db              *sql.DB
+	AnnualBillingId int
+	CreatorId       int
+}
 
-	db, err := utils.GetDBConnection()
-	if err != nil {
-		return err
-	}
+func NewAnnualBillingJob(db *sql.DB) *AnnualBillingJob {
+	return &AnnualBillingJob{db: db}
+}
+
+// cron tab to remove unset password users
+func (ab *AnnualBillingJob) AnnualBilling() error {
+
 	billingParams, err := utils.GetBillingParams()
 	if err != nil {
 		return err
 	}
 
 	// get any workspaces that have annual pricing enabled
-	results, err := db.Query("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'")
+	results, err := ab.db.Query("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'")
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, "error running query..\r\n")
 		helpers.Log(logrus.ErrorLevel, err.Error())
@@ -51,15 +56,15 @@ func AnnualBilling() error {
 
 	defer results.Close()
 	for results.Next() {
-		err = results.Scan(&id, &creatorId)
-		workspace, err := helpers.GetWorkspaceFromDB(id)
+		err = results.Scan(&ab.AnnualBillingId, &ab.CreatorId)
+		workspace, err := helpers.GetWorkspaceFromDB(ab.AnnualBillingId)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(id)+"\r\n")
+			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(ab.AnnualBillingId)+"\r\n")
 			continue
 		}
-		user, err := helpers.GetUserFromDB(creatorId)
+		user, err := helpers.GetUserFromDB(ab.CreatorId)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting user ID: "+strconv.Itoa(id)+"\r\n")
+			helpers.Log(logrus.ErrorLevel, "error getting user ID: "+strconv.Itoa(ab.AnnualBillingId)+"\r\n")
 			continue
 		}
 
@@ -77,18 +82,16 @@ func AnnualBilling() error {
 
 		invoiceDesc := "LineBlocs annual invoice"
 		// get the amount of users in this workspace
-		rows, err := db.Query("SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?", workspace.Id)
+		rows, err := ab.db.Query("SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?", workspace.Id)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
-		rows.Close()
+		defer rows.Close()
 
-		userCount, err := utils.CheckRowCount(rows)
+		userCount, err := utils.GetRowCount(rows)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
 
@@ -96,7 +99,7 @@ func AnnualBilling() error {
 		totalCostsCents := int(math.Ceil(membershipCosts))
 		// any regular costs are accured towards monthly billing, no need to charge anything here
 		regularCostsCents := 0
-		stmt, err := db.Prepare("INSERT INTO users_invoices (`cents`, `membership_costs`, `status`, `user_id`, `workspace_id`, `created_at`, `updated_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?)")
+		stmt, err := ab.db.Prepare("INSERT INTO users_invoices (`cents`, `membership_costs`, `status`, `user_id`, `workspace_id`, `created_at`, `updated_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
@@ -122,11 +125,11 @@ func AnnualBilling() error {
 			Id:          int(invoiceId),
 			Cents:       totalCostsCents,
 			InvoiceDesc: invoiceDesc}
-		err = utils.ChargeCustomer(db, billingParams, user, workspace, &invoice)
+		err = utils.ChargeCustomer(ab.db, billingParams, user, workspace, &invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
-			stmt, err := db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', cents_collected = 0.0 WHERE id = ?")
+			stmt, err := ab.db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', cents_collected = 0.0 WHERE id = ?")
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 				continue
@@ -146,7 +149,7 @@ func AnnualBilling() error {
 			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: "+err.Error())
 			continue
 		}
-		stmt, err = db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?")
+		stmt, err = ab.db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue

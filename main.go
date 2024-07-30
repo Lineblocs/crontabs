@@ -45,7 +45,11 @@ func main() {
 		}
 	case "annual_billing":
 		helpers.Log(logrus.InfoLevel, "running annual billing routines")
-		err = cmd.AnnualBilling()
+
+		db, _ := helpers.CreateDBConn()
+		job := cmd.NewAnnualBillingJob(db)
+
+		err = job.AnnualBilling()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
