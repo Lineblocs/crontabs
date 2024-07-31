@@ -113,6 +113,7 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
+
 		invoiceId, err := res.LastInsertId()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not get insert id..\r\n")
@@ -124,16 +125,20 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 		invoice := models.UserInvoice{
 			Id:          int(invoiceId),
 			Cents:       totalCostsCents,
-			InvoiceDesc: invoiceDesc}
-		err = utils.ChargeCustomer(ab.db, billingParams, user, workspace, &invoice)
+			InvoiceDesc: invoiceDesc,
+		}
+
+		err = conn.ChargeCustomer(billingParams, user, workspace, &invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
+
 			stmt, err := ab.db.Prepare("UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', cents_collected = 0.0 WHERE id = ?")
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 				continue
 			}
+
 			_, err = stmt.Exec(invoiceId)
 			if err != nil {
 				helpers.Log(logrus.ErrorLevel, "error updating invoice....\r\n")
@@ -149,11 +154,13 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 			helpers.Log(logrus.ErrorLevel, "error while generating confirmation number: "+err.Error())
 			continue
 		}
+
 		stmt, err = ab.db.Prepare("UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?")
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
 			continue
 		}
+
 		_, err = stmt.Exec(totalCostsCents, confNumber, invoiceId)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error updating debit..\r\n")
