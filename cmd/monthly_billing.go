@@ -36,7 +36,7 @@ func NewMonthlyBillingJob(db *sql.DB, worskpaceRepository repository.WorkspaceRe
 	}
 }
 
-// cron tab to remove unset password users
+// cron tab to run monthly billing
 func (mb *MonthlyBillingJob) MonthlyBilling() error {
 	var id int
 	var creatorId int

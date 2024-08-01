@@ -31,7 +31,7 @@ func NewAnnualBillingJob(db *sql.DB, worskpaceRepository repository.WorkspaceRep
 	}
 }
 
-// cron tab to remove unset password users
+// cron tab to run annual billing
 func (ab *AnnualBillingJob) AnnualBilling() error {
 	var id int
 	var creatorId int
