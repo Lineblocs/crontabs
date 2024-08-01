@@ -11,27 +11,34 @@ import (
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
 
-	//now "github.com/jinzhu/now"
-
 	helpers "github.com/Lineblocs/go-helpers"
 	models "lineblocs.com/crontabs/models"
+	"lineblocs.com/crontabs/repository"
 	utils "lineblocs.com/crontabs/utils"
 )
 
 type AnnualBillingJob struct {
-	db              *sql.DB
-	AnnualBillingId int
-	CreatorId       int
+	workspaceRepository repository.WorkspaceRepository
+	paymentRepository   repository.PaymentRepository
+	db                  *sql.DB
 }
 
-func NewAnnualBillingJob(db *sql.DB) *AnnualBillingJob {
-	return &AnnualBillingJob{db: db}
+func NewAnnualBillingJob(db *sql.DB, worskpaceRepository repository.WorkspaceRepository, paymentRepository repository.PaymentRepository) *AnnualBillingJob {
+	return &AnnualBillingJob{
+		db:                  db,
+		workspaceRepository: worskpaceRepository,
+		paymentRepository:   paymentRepository,
+	}
 }
 
 // cron tab to remove unset password users
 func (ab *AnnualBillingJob) AnnualBilling() error {
+	var id int
+	var creatorId int
 
-	billingParams, err := utils.GetBillingParams()
+	conn := utils.NewDBConn(ab.db)
+
+	billingParams, err := conn.GetBillingParams()
 	if err != nil {
 		return err
 	}
@@ -56,15 +63,16 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 
 	defer results.Close()
 	for results.Next() {
-		err = results.Scan(&ab.AnnualBillingId, &ab.CreatorId)
-		workspace, err := helpers.GetWorkspaceFromDB(ab.AnnualBillingId)
+
+		_ = results.Scan(&id, &creatorId)
+		workspace, err := ab.workspaceRepository.GetWorkspaceFromDB(id)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(ab.AnnualBillingId)+"\r\n")
+			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(id)+"\r\n")
 			continue
 		}
-		user, err := helpers.GetUserFromDB(ab.CreatorId)
+		user, err := ab.workspaceRepository.GetUserFromDB(creatorId)
 		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting user ID: "+strconv.Itoa(ab.AnnualBillingId)+"\r\n")
+			helpers.Log(logrus.ErrorLevel, "error getting user ID: "+strconv.Itoa(id)+"\r\n")
 			continue
 		}
 
@@ -128,7 +136,7 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 			InvoiceDesc: invoiceDesc,
 		}
 
-		err = conn.ChargeCustomer(billingParams, user, workspace, &invoice)
+		err = ab.paymentRepository.ChargeCustomer(billingParams, user, workspace, &invoice)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error charging user..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())

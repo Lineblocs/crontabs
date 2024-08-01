@@ -8,6 +8,7 @@ import (
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
 	cmd "lineblocs.com/crontabs/cmd"
+	"lineblocs.com/crontabs/repository"
 	"lineblocs.com/crontabs/utils"
 	//now "github.com/jinzhu/now"
 )
@@ -39,7 +40,13 @@ func main() {
 		}
 	case "monthly_billing":
 		helpers.Log(logrus.InfoLevel, "running monthly billing routines")
-		err = cmd.MonthlyBilling()
+
+		db, _ := helpers.CreateDBConn()
+		ws := repository.NewWorkspaceService()
+		ps := repository.NewPaymentService(db)
+		job := cmd.NewMonthlyBillingJob(db, ws, ps)
+
+		err = job.MonthlyBilling()
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 		}
@@ -47,7 +54,10 @@ func main() {
 		helpers.Log(logrus.InfoLevel, "running annual billing routines")
 
 		db, _ := helpers.CreateDBConn()
-		job := cmd.NewAnnualBillingJob(db)
+		ws := repository.NewWorkspaceService()
+		ps := repository.NewPaymentService(db)
+
+		job := cmd.NewAnnualBillingJob(db, ws, ps)
 
 		err = job.AnnualBilling()
 		if err != nil {

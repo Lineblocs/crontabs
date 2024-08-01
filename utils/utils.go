@@ -24,9 +24,22 @@ import (
 
 var db *sql.DB
 
+type DBConn struct {
+	Conn *sql.DB
+}
+
 type BillingParams struct {
 	Data     map[string]string
 	Provider string
+}
+
+func NewDBConn(db *sql.DB) *DBConn {
+	if db == nil {
+		db, _ = helpers.CreateDBConn()
+	}
+	return &DBConn{
+		Conn: db,
+	}
 }
 
 func GetDBConnection() (*sql.DB, error) {
@@ -111,21 +124,17 @@ func DispatchEmail(subject string, emailType string, user *helpers.User, workspa
 	return nil
 }
 
-func GetBillingParams() (*BillingParams, error) {
-	conn, err := GetDBConnection()
-	if err != nil {
-		return nil, err
-	}
+func (c *DBConn) GetBillingParams() (*BillingParams, error) {
 
-	row := conn.QueryRow("SELECT payment_gateway FROM customizations")
+	row := c.Conn.QueryRow("SELECT payment_gateway FROM customizations")
 
 	var paymentGateway string
-	err = row.Scan(&paymentGateway)
+	err := row.Scan(&paymentGateway)
 	if err != nil {
 		return nil, err
 	}
 
-	row = conn.QueryRow("SELECT stripe_private_key FROM api_credentials")
+	row = c.Conn.QueryRow("SELECT stripe_private_key FROM api_credentials")
 
 	var stripePrivateKey string
 	err = row.Scan(&stripePrivateKey)
@@ -137,7 +146,8 @@ func GetBillingParams() (*BillingParams, error) {
 	data["stripe_key"] = stripePrivateKey
 	params := BillingParams{
 		Provider: "stripe",
-		Data:     data}
+		Data:     data,
+	}
 	return &params, nil
 }
 
