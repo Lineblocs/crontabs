@@ -153,7 +153,7 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
-			// TODO send email when any biliing attempts fail
+			// TODO send email when any billing attempts fail
 			continue
 		}
 
