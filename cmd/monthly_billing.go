@@ -123,7 +123,6 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 				helpers.Log(logrus.ErrorLevel, "error creating number rental debit..\r\n")
 				continue
 			}
-
 		}
 
 		baseCosts, err := helpers.GetBaseCosts()
@@ -232,8 +231,8 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			}
 			recordingCosts += charge
 			usedMonthlyRecordings -= size
-
 		}
+
 		results4, err := mb.db.Query("SELECT id, created_at FROM faxes WHERE workspace_id = ? AND created_at BETWEEN ? AND ?", workspace.Id, startFormatted, endFormatted)
 		if err != sql.ErrNoRows && err != nil {
 			helpers.Log(logrus.ErrorLevel, "error running query..\r\n")
@@ -254,8 +253,8 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			}
 			faxCosts += charge
 			usedMonthlyFax -= 1
-
 		}
+
 		totalCosts += membershipCosts
 		totalCosts += callTolls
 		totalCosts += recordingCosts
@@ -373,7 +372,6 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 					helpers.Log(logrus.ErrorLevel, err.Error())
 					continue
 				}
-
 			}
 		} else {
 			// regular membership charge. only try to charge a card
@@ -419,7 +417,6 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
-
 		}
 	}
 	return nil

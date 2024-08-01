@@ -33,14 +33,14 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace := &mocks.WorkspaceRepository{}
 		mockPayment := &mocks.PaymentRepository{}
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		error := errors.New("failed to get payment_gateway")
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnError(error)
 
 		job := NewAnnualBillingJob(db, mockWorkspace, mockPayment)
@@ -48,7 +48,7 @@ func TestAnnualBilling(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, error, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 
@@ -58,23 +58,23 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace := &mocks.WorkspaceRepository{}
 		mockPayment := &mocks.PaymentRepository{}
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
 				AddRow("stripe"))
 
-		mock.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
 			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
 				AddRow("test_stripe_key"))
 
 		error := errors.New("failed to get workspaces")
 		// Mock expectations for the workspaces query
-		mock.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnError(error)
 
 		job := NewAnnualBillingJob(db, mockWorkspace, mockPayment)
@@ -82,7 +82,7 @@ func TestAnnualBilling(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, error, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 
@@ -92,23 +92,23 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace := &mocks.WorkspaceRepository{}
 		mockPayment := &mocks.PaymentRepository{}
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
 				AddRow("stripe"))
 
-		mock.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
 			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
 				AddRow("test_stripe_key"))
 
 		error := errors.New("failed to get workspaces")
 		// Mock expectations for the workspaces query
-		mock.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnError(error)
 
 		job := NewAnnualBillingJob(db, mockWorkspace, mockPayment)
@@ -116,7 +116,7 @@ func TestAnnualBilling(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, error, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 
@@ -129,22 +129,22 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetWorkspaceFromDB(mock.Anything).Return(testWorkspace, nil)
 		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(nil, errors.New("failed to get user"))
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
 				AddRow("stripe"))
 
-		mock.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
 			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
 				AddRow("test_stripe_key"))
 
 		// Mock expectations for the workspaces query
-		mock.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
 				AddRow(1, 101))
 
@@ -152,7 +152,7 @@ func TestAnnualBilling(t *testing.T) {
 		err = job.AnnualBilling()
 		assert.NoError(t, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 
@@ -170,28 +170,28 @@ func TestAnnualBilling(t *testing.T) {
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
 				AddRow("stripe"))
 
-		mock.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
 			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
 				AddRow("test_stripe_key"))
 
 		// Mock expectations for the workspaces query
-		mock.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
 				AddRow(1, testWorkspace.CreatorId))
 
 		// Mock expectations for user count query
 		userCountQuery := "SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?"
-		mock.ExpectQuery(regexp.QuoteMeta(userCountQuery)).
+		mockSql.ExpectQuery(regexp.QuoteMeta(userCountQuery)).
 			WithArgs(testWorkspace.Id).
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).
 				AddRow(worksSpaceUsers))
@@ -204,7 +204,7 @@ func TestAnnualBilling(t *testing.T) {
 
 		// Mock expectations for the INSERT into users_invoices
 		sqlQuery := "INSERT INTO users_invoices (`cents`, `membership_costs`, `status`, `user_id`, `workspace_id`, `created_at`, `updated_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
-		mock.ExpectPrepare(regexp.QuoteMeta(sqlQuery)).
+		mockSql.ExpectPrepare(regexp.QuoteMeta(sqlQuery)).
 			ExpectExec().
 			WithArgs(regularCostsCents, totalCostsCents, invoiceStatus, testWorkspace.CreatorId, testWorkspace.Id, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -212,7 +212,7 @@ func TestAnnualBilling(t *testing.T) {
 		// Mock expectations for the LastInsertId
 		sqlInsertId := "UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?"
 		escapedInsertId := regexp.QuoteMeta(sqlInsertId)
-		mock.ExpectPrepare(escapedInsertId).
+		mockSql.ExpectPrepare(escapedInsertId).
 			ExpectExec().
 			WithArgs(totalCostsCents, sqlmock.AnyArg(), 1).
 			WillReturnError(errors.New("failed to update users_invoices"))
@@ -221,7 +221,7 @@ func TestAnnualBilling(t *testing.T) {
 		err = job.AnnualBilling()
 		assert.NoError(t, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 
@@ -238,28 +238,28 @@ func TestAnnualBilling(t *testing.T) {
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("unable to charge customer"))
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
 				AddRow("stripe"))
 
-		mock.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
 			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
 				AddRow("test_stripe_key"))
 
 		// Mock expectations for the workspaces query
-		mock.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
 				AddRow(1, testWorkspace.CreatorId))
 
 		// Mock expectations for user count query
 		userCountQuery := "SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?"
-		mock.ExpectQuery(regexp.QuoteMeta(userCountQuery)).
+		mockSql.ExpectQuery(regexp.QuoteMeta(userCountQuery)).
 			WithArgs(testWorkspace.Id).
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).
 				AddRow(worksSpaceUsers))
@@ -272,7 +272,7 @@ func TestAnnualBilling(t *testing.T) {
 
 		// Mock expectations for the INSERT into users_invoices
 		sqlQuery := "INSERT INTO users_invoices (`cents`, `membership_costs`, `status`, `user_id`, `workspace_id`, `created_at`, `updated_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
-		mock.ExpectPrepare(regexp.QuoteMeta(sqlQuery)).
+		mockSql.ExpectPrepare(regexp.QuoteMeta(sqlQuery)).
 			ExpectExec().
 			WithArgs(regularCostsCents, totalCostsCents, invoiceStatus, testWorkspace.CreatorId, testWorkspace.Id, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -280,7 +280,7 @@ func TestAnnualBilling(t *testing.T) {
 		// Mock expectations for the LastInsertId
 		sqlInsertId := "UPDATE users_invoices SET status = 'INCOMPLETE', source = 'CARD', cents_collected = 0.0 WHERE id = ?"
 		escapedInsertId := regexp.QuoteMeta(sqlInsertId)
-		mock.ExpectPrepare(escapedInsertId).
+		mockSql.ExpectPrepare(escapedInsertId).
 			ExpectExec().
 			WithArgs(1).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -289,7 +289,7 @@ func TestAnnualBilling(t *testing.T) {
 		err = job.AnnualBilling()
 		assert.NoError(t, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 
@@ -306,28 +306,28 @@ func TestAnnualBilling(t *testing.T) {
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-		db, mock, err := sqlmock.New()
+		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
 		defer db.Close()
 
 		// Mock expectations for GetBillingParams
-		mock.ExpectQuery("SELECT payment_gateway FROM customizations").
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
 			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
 				AddRow("stripe"))
 
-		mock.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
 			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
 				AddRow("test_stripe_key"))
 
 		// Mock expectations for the workspaces query
-		mock.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
 				AddRow(1, testWorkspace.CreatorId))
 
 		// Mock expectations for user count query
 		userCountQuery := "SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?"
-		mock.ExpectQuery(regexp.QuoteMeta(userCountQuery)).
+		mockSql.ExpectQuery(regexp.QuoteMeta(userCountQuery)).
 			WithArgs(testWorkspace.Id).
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).
 				AddRow(worksSpaceUsers))
@@ -340,7 +340,7 @@ func TestAnnualBilling(t *testing.T) {
 
 		// Mock expectations for the INSERT into users_invoices
 		sqlQuery := "INSERT INTO users_invoices (`cents`, `membership_costs`, `status`, `user_id`, `workspace_id`, `created_at`, `updated_at`) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
-		mock.ExpectPrepare(regexp.QuoteMeta(sqlQuery)).
+		mockSql.ExpectPrepare(regexp.QuoteMeta(sqlQuery)).
 			ExpectExec().
 			WithArgs(regularCostsCents, totalCostsCents, invoiceStatus, testWorkspace.CreatorId, testWorkspace.Id, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -348,7 +348,7 @@ func TestAnnualBilling(t *testing.T) {
 		// Mock expectations for the LastInsertId
 		sqlInsertId := "UPDATE users_invoices SET status = 'COMPLETE', source ='CARD', cents_collected = ?, confirmation_number = ? WHERE id = ?"
 		escapedInsertId := regexp.QuoteMeta(sqlInsertId)
-		mock.ExpectPrepare(escapedInsertId).
+		mockSql.ExpectPrepare(escapedInsertId).
 			ExpectExec().
 			WithArgs(totalCostsCents, sqlmock.AnyArg(), 1).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -357,7 +357,7 @@ func TestAnnualBilling(t *testing.T) {
 		err = job.AnnualBilling()
 		assert.NoError(t, err)
 
-		err = mock.ExpectationsWereMet()
+		err = mockSql.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
 }

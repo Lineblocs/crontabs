@@ -49,7 +49,7 @@ func notifyForCardExpiry(db *sql.DB) error {
 		firstOfMonth := time.Date(year, monthStr, 1, 0, 0, 0, 0, currentLocation)
 		lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 		_, _, lastDayStr := lastOfMonth.Date()
-		lastDay := int(lastDayStr)
+		lastDay := lastDayStr
 
 		daysUntilExpiry := strconv.Itoa(lastDay + 1)
 

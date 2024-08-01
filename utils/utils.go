@@ -107,7 +107,7 @@ func DispatchEmail(subject string, emailType string, user *helpers.User, workspa
 		helpers.Log(logrus.ErrorLevel, err.Error())
 		return err
 	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(b))
 	req.Header.Set("X-Lineblocs-Key", "xxx")
 	req.Header.Set("Content-Type", "application/json")
 

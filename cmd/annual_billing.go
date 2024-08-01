@@ -175,7 +175,6 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
-
 	}
 
 	return nil

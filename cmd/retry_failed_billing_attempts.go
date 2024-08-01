@@ -54,7 +54,7 @@ func RetryFailedBillingAttempts() error {
 		// try to charge the user again.
 		invoiceDesc := "Invoice for service"
 		invoice := models.UserInvoice{
-			Id:          int(invoiceId),
+			Id:          invoiceId,
 			Cents:       cents,
 			InvoiceDesc: invoiceDesc}
 		err = utils.ChargeCustomer(db.Conn, billingParams, user, workspace, &invoice)

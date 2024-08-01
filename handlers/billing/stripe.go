@@ -15,7 +15,7 @@ import (
 )
 
 type StripeBillingHandler struct {
-	DbConn    *sql.DB
+	DBConn    *sql.DB
 	StripeKey string
 	Billing
 	RetryAttempts int
@@ -24,7 +24,7 @@ type StripeBillingHandler struct {
 func NewStripeBillingHandler(dbConn *sql.DB, stripeKey string, retryAttempts int) *StripeBillingHandler {
 	//rootCtx, _ := context.WithCancel(context.Background())
 	item := &StripeBillingHandler{
-		DbConn:        dbConn,
+		DBConn:        dbConn,
 		StripeKey:     stripeKey,
 		RetryAttempts: retryAttempts,
 	}
@@ -32,7 +32,7 @@ func NewStripeBillingHandler(dbConn *sql.DB, stripeKey string, retryAttempts int
 }
 
 func (hndl *StripeBillingHandler) ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) error {
-	db := hndl.DbConn
+	db := hndl.DBConn
 	stripe.Key = hndl.StripeKey
 
 	var id int
