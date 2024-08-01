@@ -76,17 +76,7 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 			continue
 		}
 
-		var plan *helpers.ServicePlan
-		for _, target := range plans {
-			if target.Name == workspace.Plan {
-				plan = &target
-				break
-			}
-		}
-		if plan == nil {
-			helpers.Log(logrus.InfoLevel, "No plan found for user..\r\n")
-			continue
-		}
+		plan := utils.GetPlan(plans, workspace)
 
 		invoiceDesc := "LineBlocs annual invoice"
 		// get the amount of users in this workspace

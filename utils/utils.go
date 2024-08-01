@@ -124,6 +124,20 @@ func DispatchEmail(subject string, emailType string, user *helpers.User, workspa
 	return nil
 }
 
+func GetPlan(plans []helpers.ServicePlan, workspace *helpers.Workspace) *helpers.ServicePlan {
+	var plan *helpers.ServicePlan
+	for _, target := range plans {
+		if target.Name == workspace.Plan {
+			plan = &target
+			break
+		}
+	}
+	if plan == nil {
+		helpers.Log(logrus.InfoLevel, "No plan found for user..\r\n")
+	}
+	return plan
+}
+
 func (c *DBConn) GetBillingParams() (*BillingParams, error) {
 
 	row := c.Conn.QueryRow("SELECT payment_gateway FROM customizations")

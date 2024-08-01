@@ -24,8 +24,6 @@ type MonthlyBillingJob struct {
 	workspaceRepository repository.WorkspaceRepository
 	paymentRepository   repository.PaymentRepository
 	db                  *sql.DB
-	AnnualBillingId     int
-	CreatorId           int
 }
 
 func NewMonthlyBillingJob(db *sql.DB, worskpaceRepository repository.WorkspaceRepository, paymentRepository repository.PaymentRepository) *MonthlyBillingJob {
@@ -52,8 +50,8 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 	start = start.AddDate(0, -1, 0)
 	end := time.Now()
 	currentTime := time.Now()
-	startFormatted := start.Format("2006-01-02 15:04:05")
-	endFormatted := end.Format("2006-01-02 15:04:05")
+	startFormatted := start.Format(time.DateTime)
+	endFormatted := end.Format(time.DateTime)
 	results, err := mb.db.Query("SELECT id, creator_id FROM workspaces")
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, "error running query..\r\n")
@@ -81,17 +79,8 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			continue
 		}
 
-		var plan *helpers.ServicePlan
-		for _, target := range plans {
-			if target.Name == workspace.Plan {
-				plan = &target
-				break
-			}
-		}
-		if plan == nil {
-			helpers.Log(logrus.InfoLevel, "No plan found for user..\r\n")
-			continue
-		}
+		plan := utils.GetPlan(plans, workspace)
+
 		billingInfo, err := helpers.GetWorkspaceBillingInfo(workspace)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "Could not get billing info..\r\n")
