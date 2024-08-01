@@ -23,11 +23,12 @@ type StripeBillingHandler struct {
 
 func NewStripeBillingHandler(dbConn *sql.DB, stripeKey string, retryAttempts int) *StripeBillingHandler {
 	//rootCtx, _ := context.WithCancel(context.Background())
-	item := StripeBillingHandler{
+	item := &StripeBillingHandler{
 		DbConn:        dbConn,
 		StripeKey:     stripeKey,
-		RetryAttempts: retryAttempts}
-	return &item
+		RetryAttempts: retryAttempts,
+	}
+	return item
 }
 
 func (hndl *StripeBillingHandler) ChargeCustomer(user *helpers.User, workspace *helpers.Workspace, invoice *models.UserInvoice) error {
