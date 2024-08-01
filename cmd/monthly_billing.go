@@ -69,7 +69,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 
 	defer results.Close()
 	for results.Next() {
-		err = results.Scan(&id, &creatorId)
+		_ = results.Scan(&id, &creatorId)
 		workspace, err := helpers.GetWorkspaceFromDB(id)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(id)+"\r\n")

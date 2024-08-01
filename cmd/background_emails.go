@@ -149,8 +149,7 @@ func SendBackgroundEmails() error {
 
 	ago := time.Time{}
 	ago = ago.AddDate(0, 0, -14)
-	reminded := time.Time{}
-	reminded = reminded.AddDate(0, 0, -28)
+
 	dateFormatted := ago.Format("2006-01-02 15:04:05")
 	results, err := db.Query("SELECT workspaces.id, workspaces.creator_id from workspaces inner join users on users.id = workspaces.creator_id where users.last_login >= ? AND users.last_login_reminded IS NULL", dateFormatted)
 	if err != nil {

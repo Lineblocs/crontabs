@@ -61,12 +61,19 @@ test: # Runs all the tests in the application and returns if they passed or fail
 lint: #Shows possible errors in the code
 	golangci-lint run
 
-
-.PHONY: align
-align: # Fix field alignment
-	- fieldalignment -fix ./...
-
 .PHONY: format
 format: # Format the code and imports
 	go fmt ./...
 	goimports -w .
+	fieldalignment -fix ./...
+
+.PHONY: staticcheck
+staticcheck:
+	staticcheck ./...
+
+.PHONY: go-vet
+go-vet:
+	go vet ./...
+
+.PHONY: check
+check: go-vet staticcheck
