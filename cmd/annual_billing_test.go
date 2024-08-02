@@ -146,7 +146,7 @@ func TestAnnualBilling(t *testing.T) {
 		// Mock expectations for the workspaces query
 		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
-				AddRow(1, 101))
+				AddRow(testWorkspace.Id, testWorkspace.CreatorId))
 
 		job := NewAnnualBillingJob(db, mockWorkspace, mockPayment)
 		err = job.AnnualBilling()
@@ -187,7 +187,7 @@ func TestAnnualBilling(t *testing.T) {
 		// Mock expectations for the workspaces query
 		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
-				AddRow(1, testWorkspace.CreatorId))
+				AddRow(testWorkspace.Id, testWorkspace.CreatorId))
 
 		// Mock expectations for user count query
 		userCountQuery := "SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?"
@@ -323,7 +323,7 @@ func TestAnnualBilling(t *testing.T) {
 		// Mock expectations for the workspaces query
 		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces WHERE plan_term = 'annual'").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
-				AddRow(1, testWorkspace.CreatorId))
+				AddRow(testWorkspace.Id, testWorkspace.CreatorId))
 
 		// Mock expectations for user count query
 		userCountQuery := "SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?"
