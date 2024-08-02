@@ -6,6 +6,7 @@ import (
 
 type WorkspaceRepository interface {
 	GetWorkspaceFromDB(id int) (*helpers.Workspace, error)
+	GetWorkspaceBillingInfo(workspace *helpers.Workspace) (*helpers.WorkspaceBillingInfo, error)
 	GetUserFromDB(id int) (*helpers.User, error)
 }
 
@@ -21,4 +22,8 @@ func (ws *WorkspaceService) GetWorkspaceFromDB(id int) (*helpers.Workspace, erro
 
 func (ws *WorkspaceService) GetUserFromDB(id int) (*helpers.User, error) {
 	return helpers.GetUserFromDB(id)
+}
+
+func (ws *WorkspaceService) GetWorkspaceBillingInfo(workspace *helpers.Workspace) (*helpers.WorkspaceBillingInfo, error) {
+	return helpers.GetWorkspaceBillingInfo(workspace)
 }

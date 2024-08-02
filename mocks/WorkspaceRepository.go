@@ -78,6 +78,64 @@ func (_c *WorkspaceRepository_GetUserFromDB_Call) RunAndReturn(run func(int) (*l
 	return _c
 }
 
+// GetWorkspaceBillingInfo provides a mock function with given fields: workspace
+func (_m *WorkspaceRepository) GetWorkspaceBillingInfo(workspace *lineblocs.Workspace) (*lineblocs.WorkspaceBillingInfo, error) {
+	ret := _m.Called(workspace)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWorkspaceBillingInfo")
+	}
+
+	var r0 *lineblocs.WorkspaceBillingInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*lineblocs.Workspace) (*lineblocs.WorkspaceBillingInfo, error)); ok {
+		return rf(workspace)
+	}
+	if rf, ok := ret.Get(0).(func(*lineblocs.Workspace) *lineblocs.WorkspaceBillingInfo); ok {
+		r0 = rf(workspace)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lineblocs.WorkspaceBillingInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*lineblocs.Workspace) error); ok {
+		r1 = rf(workspace)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// WorkspaceRepository_GetWorkspaceBillingInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetWorkspaceBillingInfo'
+type WorkspaceRepository_GetWorkspaceBillingInfo_Call struct {
+	*mock.Call
+}
+
+// GetWorkspaceBillingInfo is a helper method to define mock.On call
+//   - workspace *lineblocs.Workspace
+func (_e *WorkspaceRepository_Expecter) GetWorkspaceBillingInfo(workspace interface{}) *WorkspaceRepository_GetWorkspaceBillingInfo_Call {
+	return &WorkspaceRepository_GetWorkspaceBillingInfo_Call{Call: _e.mock.On("GetWorkspaceBillingInfo", workspace)}
+}
+
+func (_c *WorkspaceRepository_GetWorkspaceBillingInfo_Call) Run(run func(workspace *lineblocs.Workspace)) *WorkspaceRepository_GetWorkspaceBillingInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*lineblocs.Workspace))
+	})
+	return _c
+}
+
+func (_c *WorkspaceRepository_GetWorkspaceBillingInfo_Call) Return(_a0 *lineblocs.WorkspaceBillingInfo, _a1 error) *WorkspaceRepository_GetWorkspaceBillingInfo_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *WorkspaceRepository_GetWorkspaceBillingInfo_Call) RunAndReturn(run func(*lineblocs.Workspace) (*lineblocs.WorkspaceBillingInfo, error)) *WorkspaceRepository_GetWorkspaceBillingInfo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetWorkspaceFromDB provides a mock function with given fields: id
 func (_m *WorkspaceRepository) GetWorkspaceFromDB(id int) (*lineblocs.Workspace, error) {
 	ret := _m.Called(id)

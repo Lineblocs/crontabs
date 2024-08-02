@@ -68,12 +68,12 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 	defer results.Close()
 	for results.Next() {
 		_ = results.Scan(&id, &creatorId)
-		workspace, err := helpers.GetWorkspaceFromDB(id)
+		workspace, err := mb.workspaceRepository.GetWorkspaceFromDB(id)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error getting workspace ID: "+strconv.Itoa(id)+"\r\n")
 			continue
 		}
-		user, err := helpers.GetUserFromDB(creatorId)
+		user, err := mb.workspaceRepository.GetUserFromDB(creatorId)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "error getting user ID: "+strconv.Itoa(id)+"\r\n")
 			continue
@@ -81,7 +81,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 
 		plan := utils.GetPlan(plans, workspace)
 
-		billingInfo, err := helpers.GetWorkspaceBillingInfo(workspace)
+		billingInfo, err := mb.workspaceRepository.GetWorkspaceBillingInfo(workspace)
 		if err != nil {
 			helpers.Log(logrus.ErrorLevel, "Could not get billing info..\r\n")
 			helpers.Log(logrus.ErrorLevel, err.Error())
