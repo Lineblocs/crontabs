@@ -67,13 +67,7 @@ format: # Format the code and imports
 	goimports -w .
 	fieldalignment -fix ./...
 
-.PHONY: staticcheck
-staticcheck:
-	staticcheck ./...
-
-.PHONY: go-vet
-go-vet:
-	go vet ./...
-
 .PHONY: check
-check: go-vet staticcheck
+check:
+	go vet ./...
+	staticcheck ./...
