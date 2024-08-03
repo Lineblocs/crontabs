@@ -8,6 +8,8 @@ type WorkspaceRepository interface {
 	GetWorkspaceFromDB(id int) (*helpers.Workspace, error)
 	GetWorkspaceBillingInfo(workspace *helpers.Workspace) (*helpers.WorkspaceBillingInfo, error)
 	GetUserFromDB(id int) (*helpers.User, error)
+	GetDIDFromDB(id int) (*helpers.DIDNumber, error)
+	GetCallFromDB(id int) (*helpers.Call, error)
 }
 
 type WorkspaceService struct{}
@@ -26,4 +28,12 @@ func (ws *WorkspaceService) GetUserFromDB(id int) (*helpers.User, error) {
 
 func (ws *WorkspaceService) GetWorkspaceBillingInfo(workspace *helpers.Workspace) (*helpers.WorkspaceBillingInfo, error) {
 	return helpers.GetWorkspaceBillingInfo(workspace)
+}
+
+func (ws *WorkspaceService) GetDIDFromDB(id int) (*helpers.DIDNumber, error) {
+	return helpers.GetDIDFromDB(id)
+}
+
+func (ws *WorkspaceService) GetCallFromDB(id int) (*helpers.Call, error) {
+	return helpers.GetCallFromDB(id)
 }

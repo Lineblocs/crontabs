@@ -20,6 +20,122 @@ func (_m *WorkspaceRepository) EXPECT() *WorkspaceRepository_Expecter {
 	return &WorkspaceRepository_Expecter{mock: &_m.Mock}
 }
 
+// GetCallFromDB provides a mock function with given fields: id
+func (_m *WorkspaceRepository) GetCallFromDB(id int) (*lineblocs.Call, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCallFromDB")
+	}
+
+	var r0 *lineblocs.Call
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (*lineblocs.Call, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(int) *lineblocs.Call); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lineblocs.Call)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// WorkspaceRepository_GetCallFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCallFromDB'
+type WorkspaceRepository_GetCallFromDB_Call struct {
+	*mock.Call
+}
+
+// GetCallFromDB is a helper method to define mock.On call
+//   - id int
+func (_e *WorkspaceRepository_Expecter) GetCallFromDB(id interface{}) *WorkspaceRepository_GetCallFromDB_Call {
+	return &WorkspaceRepository_GetCallFromDB_Call{Call: _e.mock.On("GetCallFromDB", id)}
+}
+
+func (_c *WorkspaceRepository_GetCallFromDB_Call) Run(run func(id int)) *WorkspaceRepository_GetCallFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return _c
+}
+
+func (_c *WorkspaceRepository_GetCallFromDB_Call) Return(_a0 *lineblocs.Call, _a1 error) *WorkspaceRepository_GetCallFromDB_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *WorkspaceRepository_GetCallFromDB_Call) RunAndReturn(run func(int) (*lineblocs.Call, error)) *WorkspaceRepository_GetCallFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDIDFromDB provides a mock function with given fields: id
+func (_m *WorkspaceRepository) GetDIDFromDB(id int) (*lineblocs.DIDNumber, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDIDFromDB")
+	}
+
+	var r0 *lineblocs.DIDNumber
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (*lineblocs.DIDNumber, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(int) *lineblocs.DIDNumber); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lineblocs.DIDNumber)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// WorkspaceRepository_GetDIDFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDIDFromDB'
+type WorkspaceRepository_GetDIDFromDB_Call struct {
+	*mock.Call
+}
+
+// GetDIDFromDB is a helper method to define mock.On call
+//   - id int
+func (_e *WorkspaceRepository_Expecter) GetDIDFromDB(id interface{}) *WorkspaceRepository_GetDIDFromDB_Call {
+	return &WorkspaceRepository_GetDIDFromDB_Call{Call: _e.mock.On("GetDIDFromDB", id)}
+}
+
+func (_c *WorkspaceRepository_GetDIDFromDB_Call) Run(run func(id int)) *WorkspaceRepository_GetDIDFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return _c
+}
+
+func (_c *WorkspaceRepository_GetDIDFromDB_Call) Return(_a0 *lineblocs.DIDNumber, _a1 error) *WorkspaceRepository_GetDIDFromDB_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *WorkspaceRepository_GetDIDFromDB_Call) RunAndReturn(run func(int) (*lineblocs.DIDNumber, error)) *WorkspaceRepository_GetDIDFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUserFromDB provides a mock function with given fields: id
 func (_m *WorkspaceRepository) GetUserFromDB(id int) (*lineblocs.User, error) {
 	ret := _m.Called(id)

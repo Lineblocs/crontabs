@@ -169,7 +169,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			switch source {
 			case "CALL":
 				helpers.Log(logrus.InfoLevel, fmt.Sprintf("getting call %d\r\n", moduleId))
-				call, err := helpers.GetCallFromDB(moduleId)
+				call, err := mb.workspaceRepository.GetCallFromDB(moduleId)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error running query..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
@@ -189,7 +189,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 
 			case "NUMBER_RENTAL":
 				helpers.Log(logrus.InfoLevel, fmt.Sprintf("getting DID %d\r\n", moduleId))
-				did, err := helpers.GetDIDFromDB(moduleId)
+				did, err := mb.workspaceRepository.GetDIDFromDB(moduleId)
 				if err != nil {
 					helpers.Log(logrus.ErrorLevel, "error running query..\r\n")
 					helpers.Log(logrus.ErrorLevel, err.Error())
