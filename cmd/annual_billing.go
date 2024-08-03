@@ -3,16 +3,14 @@ package cmd
 import (
 	"database/sql"
 	"fmt"
-	"time"
-
 	"math"
 	"strconv"
+	"time"
 
+	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
-
-	helpers "github.com/Lineblocs/go-helpers"
 	models "lineblocs.com/crontabs/models"
 	"lineblocs.com/crontabs/repository"
 	utils "lineblocs.com/crontabs/utils"

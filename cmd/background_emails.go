@@ -8,13 +8,10 @@ import (
 	"math"
 	"strconv"
 
+	helpers "github.com/Lineblocs/go-helpers"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
-
-	//now "github.com/jinzhu/now"
-
-	helpers "github.com/Lineblocs/go-helpers"
 	utils "lineblocs.com/crontabs/utils"
 )
 
