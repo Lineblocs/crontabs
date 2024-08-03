@@ -214,7 +214,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			cents := math.Round(baseCosts.RecordingsPerByte * float64(size))
 			charge, err := utils.ComputeAmountToCharge(cents, usedMonthlyRecordings, size)
 			if err != nil {
-				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
+				helpers.Log(logrus.ErrorLevel, "error calculating charge amount\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
@@ -236,7 +236,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			centsForFax := baseCosts.FaxPerUsed
 			charge, err := utils.ComputeAmountToCharge(centsForFax, float64(usedMonthlyFax), totalFax)
 			if err != nil {
-				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
+				helpers.Log(logrus.ErrorLevel, "error calculating charge amount\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
 				continue
 			}
@@ -279,14 +279,14 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			continue
 		}
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("Charging user %d, on workspace %d, plan type %s\r\n", user.Id, workspace.Id, workspace.Plan))
+
 		// try to charge the debit
-		//if workspace.Plan == "pay-as-you-go" {
 		if plan.PayAsYouGo {
 			remainingBalance := billingInfo.RemainingBalanceCents
 			minRemaining := remainingBalance - totalCosts
 			charge, err := utils.ComputeAmountToCharge(totalCosts, remainingBalance, minRemaining)
 			if err != nil {
-				helpers.Log(logrus.ErrorLevel, "error getting charge..\r\n")
+				helpers.Log(logrus.ErrorLevel, "error calculating charge amount\r\n")
 				helpers.Log(logrus.ErrorLevel, err.Error())
 
 				continue
