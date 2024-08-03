@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"regexp"
 	"testing"
 	"time"
@@ -30,6 +31,79 @@ func TestMonthlyBilling(t *testing.T) {
 
 	monthlyCost := 1000
 	moduleId := 1
+
+	t.Run("Should fail monthly billing job due unable to get workspace information", func(t *testing.T) {
+		t.Parallel()
+
+		mockWorkspace := &mocks.WorkspaceRepository{}
+		mockPayment := &mocks.PaymentRepository{}
+
+		db, mockSql, err := sqlmock.New()
+		assert.NoError(t, err)
+
+		defer db.Close()
+
+		// Mock expectations for GetBillingParams
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
+			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
+				AddRow("stripe"))
+
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
+				AddRow("test_stripe_key"))
+
+		// Mock expectations for the workspaces query
+		error := errors.New("failed to get workspaces")
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces").
+			WillReturnError(error)
+
+		job := NewMonthlyBillingJob(db, mockWorkspace, mockPayment)
+		err = job.MonthlyBilling()
+		assert.Error(t, err)
+		assert.Equal(t, error, err)
+
+		err = mockSql.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should finish monthly billing job without processing due unable to get user from db", func(t *testing.T) {
+		t.Parallel()
+
+		mockWorkspace := &mocks.WorkspaceRepository{}
+		mockPayment := &mocks.PaymentRepository{}
+
+		mockWorkspace.EXPECT().GetWorkspaceFromDB(mock.Anything).Return(testWorkspace, nil)
+		mockWorkspace.EXPECT().GetWorkspaceBillingInfo(mock.Anything).Return(testBillingInfo, nil)
+		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(nil, errors.New("failed to get user"))
+
+		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+		db, mockSql, err := sqlmock.New()
+		assert.NoError(t, err)
+
+		defer db.Close()
+
+		// Mock expectations for GetBillingParams
+		mockSql.ExpectQuery("SELECT payment_gateway FROM customizations").
+			WillReturnRows(sqlmock.NewRows([]string{"payment_gateway"}).
+				AddRow("stripe"))
+
+		mockSql.ExpectQuery("SELECT stripe_private_key FROM api_credentials").
+			WillReturnRows(sqlmock.NewRows([]string{"stripe_private_key"}).
+				AddRow("test_stripe_key"))
+
+		// Mock expectations for the workspaces query
+		mockSql.ExpectQuery("SELECT id, creator_id FROM workspaces").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "creator_id"}).
+				AddRow(testWorkspace.Id, testWorkspace.CreatorId))
+
+		job := NewMonthlyBillingJob(db, mockWorkspace, mockPayment)
+		err = job.MonthlyBilling()
+		assert.NoError(t, err)
+
+		err = mockSql.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
 
 	t.Run("Should finish monthly billing without any issues for NUMBER_RENTAL", func(t *testing.T) {
 		t.Parallel()
