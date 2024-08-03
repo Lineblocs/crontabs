@@ -128,7 +128,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			helpers.Log(logrus.ErrorLevel, err.Error())
 			continue
 		}
-		rows.Close()
+		defer rows.Close()
 
 		userCount, err := utils.GetRowCount(rows)
 		if err != nil {
