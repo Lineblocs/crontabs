@@ -88,31 +88,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			continue
 		}
 
-		var didId int
-		var monthlyCosts int
-		results1, err := mb.db.Query("SELECT id, monthly_cost  FROM did_numbers WHERE workspace_id = ?", workspace.Id)
-		if err != sql.ErrNoRows && err != nil {
-			helpers.Log(logrus.ErrorLevel, "Could not get dids info..\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
-			continue
-		}
-		defer results1.Close()
-		for results1.Next() {
-			results1.Scan(&didId, &monthlyCosts)
-			stmt, err := mb.db.Prepare("INSERT INTO users_debits (`source`, `status`, `cents`, `module_id`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?, ?)")
-			if err != nil {
-				helpers.Log(logrus.ErrorLevel, "could not prepare query..\r\n")
-				helpers.Log(logrus.ErrorLevel, err.Error())
-				continue
-			}
-
-			defer stmt.Close()
-			_, err = stmt.Exec("NUMBER_RENTAL", "INCOMPLETE", monthlyCosts, didId, user.Id, workspace.Id, start)
-			if err != nil {
-				helpers.Log(logrus.ErrorLevel, "error creating number rental debit..\r\n")
-				continue
-			}
-		}
+		utils.CreateMonthlyNumberRentalDebit(mb.db, workspace.Id, user.Id, start)
 
 		baseCosts, err := helpers.GetBaseCosts()
 		if err != nil {
@@ -121,21 +97,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 			continue
 		}
 
-		// get the amount of users in this workspace
-		rows, err := mb.db.Query("SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?", workspace.Id)
-		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
-			continue
-		}
-		defer rows.Close()
-
-		userCount, err := utils.GetRowCount(rows)
-		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
-			continue
-		}
+		userCount := utils.GetWorkspaceUserCount(mb.db, workspace.Id)
 		helpers.Log(logrus.InfoLevel, fmt.Sprintf("Workspace total user count %d", userCount))
 
 		totalCosts := 0.0

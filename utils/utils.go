@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"math"
 
@@ -205,6 +206,52 @@ func ComputeAmountToCharge(fullCentsToCharge float64, availMinutes float64, minu
 	// this should not happen
 	helpers.Log(logrus.InfoLevel, fmt.Sprintf("computeAmountToCharge result: %f\r\n", 0.0))
 	return 0, fmt.Errorf("billing ran into unexpected error. computeAmountToCharge full: %f, used minutes %f, minutes %f, minAfterDebit: %f", fullCentsToCharge, availMinutes, minutes, minAfterDebit)
+}
+
+func CreateMonthlyNumberRentalDebit(db *sql.DB, workspaceId int, userId int, start time.Time) (int, int) {
+	var didId int
+	var monthlyCosts int
+	results1, err := db.Query("SELECT id, monthly_cost  FROM did_numbers WHERE workspace_id = ?", workspaceId)
+	if err != sql.ErrNoRows && err != nil {
+		helpers.Log(logrus.ErrorLevel, "Could not get dids info..\r\n")
+		errMessage := errors.Wrap(err, "Could not get dids info")
+		helpers.Log(logrus.ErrorLevel, errMessage.Error())
+	}
+	defer results1.Close()
+	for results1.Next() {
+		results1.Scan(&didId, &monthlyCosts)
+		stmt, err := db.Prepare("INSERT INTO users_debits (`source`, `status`, `cents`, `module_id`, `user_id`, `workspace_id`, `created_at`) VALUES ( ?, ?, ?, ?, ?, ?)")
+		if err != nil {
+			errMessage := errors.Wrap(err, "could not prepare query")
+			helpers.Log(logrus.ErrorLevel, errMessage.Error())
+			continue
+		}
+
+		defer stmt.Close()
+		_, err = stmt.Exec("NUMBER_RENTAL", "INCOMPLETE", monthlyCosts, didId, userId, workspaceId, start)
+		if err != nil {
+			helpers.Log(logrus.ErrorLevel, "error creating number rental debit..\r\n")
+			continue
+		}
+	}
+	return didId, monthlyCosts
+}
+
+func GetWorkspaceUserCount(db *sql.DB, workspaceId int) int {
+	rows, err := db.Query("SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?", workspaceId)
+	if err != nil {
+		helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
+		helpers.Log(logrus.ErrorLevel, err.Error())
+	}
+	defer rows.Close()
+
+	userCount, err := GetRowCount(rows)
+	if err != nil {
+		helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
+		helpers.Log(logrus.ErrorLevel, err.Error())
+	}
+
+	return userCount
 }
 
 func CreateInvoiceConfirmationNumber() (string, error) {

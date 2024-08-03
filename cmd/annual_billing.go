@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"math"
@@ -79,19 +80,9 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 		plan := utils.GetPlan(plans, workspace)
 
 		invoiceDesc := "LineBlocs annual invoice"
-		// get the amount of users in this workspace
-		rows, err := ab.db.Query("SELECT COUNT(*) as count FROM  workspaces_users WHERE workspace_id = ?", workspace.Id)
-		if err != nil {
-			helpers.Log(logrus.ErrorLevel, "error getting workspace user count.\r\n")
-			helpers.Log(logrus.ErrorLevel, err.Error())
-			continue
-		}
-		defer rows.Close()
 
-		userCount, err := utils.GetRowCount(rows)
-		if err != nil {
-			continue
-		}
+		userCount := utils.GetWorkspaceUserCount(ab.db, workspace.Id)
+		helpers.Log(logrus.InfoLevel, fmt.Sprintf("Workspace total user count %d", userCount))
 
 		membershipCosts := float64(plan.AnnualCostCents) * float64(userCount)
 		totalCostsCents := int(math.Ceil(membershipCosts))
