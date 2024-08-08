@@ -1,4 +1,5 @@
 # README
+
 #This README contains the steps necessary to get our application up and running.
 
 ### What is this repository for? ###
@@ -6,7 +7,7 @@
 * Quick Summary
 * Version
 
-### How do I get set up? #Summary of setup
+### Summary of setup
 * Configuration
 * Dependencies
 * Database configuration
