@@ -13,6 +13,19 @@ import (
 	"lineblocs.com/crontabs/mocks"
 )
 
+func testMonthlyServicePlans() []helpers.ServicePlan {
+	return []helpers.ServicePlan{
+		{
+			MinutesPerMonth:          200.0,
+			BaseCosts:                24.99,
+			ImIntegrations:           true,
+			Name:                     "starter",
+			ProductivityIntegrations: true,
+			RecordingSpace:           1024.0,
+		},
+	}
+}
+
 func TestMonthlyBilling(t *testing.T) {
 	t.Parallel()
 	helpers.InitLogrus("file")
@@ -77,6 +90,7 @@ func TestMonthlyBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(nil, errors.New("failed to get user"))
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		mockPayment.EXPECT().GetServicePlans().Return(testMonthlyServicePlans(), nil)
 
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
@@ -125,6 +139,7 @@ func TestMonthlyBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetDIDFromDB(mock.Anything).Return(did, nil)
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		mockPayment.EXPECT().GetServicePlans().Return(testMonthlyServicePlans(), nil)
 
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
@@ -211,6 +226,7 @@ func TestMonthlyBilling(t *testing.T) {
 	t.Run("Should finish monthly billing without any issues with extra CALL costs", func(t *testing.T) {
 		t.Parallel()
 
+		//todo: change to be dinamically
 		worksSpaceUsers := 3
 		membershipCost := 74.97
 		extraCallCost := 160
@@ -229,6 +245,7 @@ func TestMonthlyBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetCallFromDB(mock.Anything).Return(call, nil)
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		mockPayment.EXPECT().GetServicePlans().Return(testMonthlyServicePlans(), nil)
 
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)

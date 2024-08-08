@@ -13,6 +13,19 @@ import (
 	"lineblocs.com/crontabs/mocks"
 )
 
+func testAnnualServicePlans() []helpers.ServicePlan {
+	return []helpers.ServicePlan{
+		{
+			MinutesPerMonth:          200.0,
+			BaseCosts:                24.99,
+			ImIntegrations:           true,
+			Name:                     "starter",
+			ProductivityIntegrations: true,
+			RecordingSpace:           1024.0,
+		},
+	}
+}
+
 func TestAnnualBilling(t *testing.T) {
 	t.Parallel()
 	helpers.InitLogrus("file")
@@ -129,6 +142,8 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetWorkspaceFromDB(mock.Anything).Return(testWorkspace, nil)
 		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(nil, errors.New("failed to get user"))
 
+		mockPayment.EXPECT().GetServicePlans().Return(testAnnualServicePlans(), nil)
+
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
 
@@ -169,6 +184,7 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(testUser, nil)
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		mockPayment.EXPECT().GetServicePlans().Return(testAnnualServicePlans(), nil)
 
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
@@ -237,6 +253,7 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(testUser, nil)
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("unable to charge customer"))
+		mockPayment.EXPECT().GetServicePlans().Return(testAnnualServicePlans(), nil)
 
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
@@ -305,6 +322,7 @@ func TestAnnualBilling(t *testing.T) {
 		mockWorkspace.EXPECT().GetUserFromDB(mock.Anything).Return(testUser, nil)
 
 		mockPayment.EXPECT().ChargeCustomer(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		mockPayment.EXPECT().GetServicePlans().Return(testAnnualServicePlans(), nil)
 
 		db, mockSql, err := sqlmock.New()
 		assert.NoError(t, err)
