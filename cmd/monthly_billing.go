@@ -55,7 +55,7 @@ func (mb *MonthlyBillingJob) MonthlyBilling() error {
 		helpers.Log(logrus.ErrorLevel, err.Error())
 		return err
 	}
-	plans, err := helpers.GetServicePlans()
+	plans, err := mb.paymentRepository.GetServicePlans()
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, "error getting service plans\r\n")
 		helpers.Log(logrus.ErrorLevel, err.Error())

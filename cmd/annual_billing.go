@@ -50,7 +50,7 @@ func (ab *AnnualBillingJob) AnnualBilling() error {
 		return err
 	}
 
-	plans, err := helpers.GetServicePlans()
+	plans, err := ab.paymentRepository.GetServicePlans()
 	if err != nil {
 		helpers.Log(logrus.ErrorLevel, "error getting service plans\r\n")
 		helpers.Log(logrus.ErrorLevel, err.Error())
