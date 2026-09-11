@@ -32,10 +32,16 @@ type FraudRiskProfile struct {
 }
 
 func publishWorkspaceSuspended(ch *amqp.Channel, task models.SuspensionTask) error {
+	enforceNotifications := false
 	body, err := json.Marshal(task)
 	if err != nil {
 		return err
 	}
+	if !enforceNotifications {
+		log.Println("enforceNotifications is false, not publishing workspace suspended message")
+		return nil
+	}
+
 	err = ch.Publish(
 		"",
 		"workspace_suspended",
